@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-panel="stage-02">
+  <rect x="72" y="52" width="176" height="136" rx="24" ry="24" fill="none" stroke="#4A3E34" stroke-width="2"/>
+  <line x1="120" y1="92" x2="180" y2="76" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180" y1="76" x2="196" y2="132" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="196" y1="132" x2="140" y2="156" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="140" y1="156" x2="96" y2="124" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="96" y1="124" x2="120" y2="92" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="120" cy="92" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="180" cy="76" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="196" cy="132" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="140" cy="156" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="96" cy="124" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="120" cy="92" r="6" fill="#C8864A"/>
+  <circle cx="180" cy="76" r="6" fill="#4A3E34"/>
+  <circle cx="196" cy="132" r="6" fill="#4A3E34"/>
+  <circle cx="140" cy="156" r="6" fill="#4A3E34"/>
+  <circle cx="96" cy="124" r="6" fill="#4A3E34"/>
+</svg>

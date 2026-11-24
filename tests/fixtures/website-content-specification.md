@@ -1,0 +1,5 @@
+# website-content-specification.md — not available in this run
+
+<!-- FIXTURE ABSENT: website-content-specification.md -->
+
+The document this fixture must hold is the Gracious Intelligence content specification, version 2 of 23 November 2026, expected to be 20,375 bytes and to carry sections A0 through A8 together with its own reading rules and template-section mapping. It was searched for in the repository working tree, in the full git history, in the attachments directory supplied with the task, throughout the run's working area and across the host filesystem, and it was not found; the companion research document whose appendix reproduces it is absent as well. No copy of it may be reconstructed, paraphrased or approximated from the build prompt, from the action plan's quotations or from any other source. Until the owner supplies the document, tests/helpers/spec.ts and the copy-fidelity assertions must fail with a message naming this document; the owner-facing record of the missing input is the README's outstanding-copy list.

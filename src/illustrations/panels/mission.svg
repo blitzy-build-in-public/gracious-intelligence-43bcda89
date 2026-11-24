@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-panel="mission">
+  <rect x="80" y="56" width="160" height="128" rx="24" ry="24" fill="none" stroke="#4A3E34" stroke-width="2"/>
+  <line x1="160" y1="120" x2="160" y2="84" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="160" y1="120" x2="196" y2="120" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="160" y1="120" x2="160" y2="156" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="160" y1="120" x2="124" y2="120" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="160" y1="84" x2="196" y2="120" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="196" y1="120" x2="160" y2="156" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="160" y1="156" x2="124" y2="120" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <line x1="124" y1="120" x2="160" y2="84" stroke="#A8998A" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="160" cy="120" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="160" cy="84" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="196" cy="120" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="160" cy="156" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="124" cy="120" r="12" fill="none" stroke="#1D0E03" stroke-width="2"/>
+  <circle cx="160" cy="120" r="6" fill="#C8864A"/>
+  <circle cx="160" cy="84" r="6" fill="#4A3E34"/>
+  <circle cx="196" cy="120" r="6" fill="#4A3E34"/>
+  <circle cx="160" cy="156" r="6" fill="#4A3E34"/>
+  <circle cx="124" cy="120" r="6" fill="#4A3E34"/>
+</svg>

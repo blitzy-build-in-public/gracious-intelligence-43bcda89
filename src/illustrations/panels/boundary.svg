@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false" data-panel="boundary">
+  <rect x="168" y="68" width="144" height="104" rx="24" ry="24" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <line x1="204" y1="104" x2="260" y2="136" stroke="#FFF2E4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="140" y1="84" x2="204" y2="104" stroke="#FFF2E4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="148" y1="156" x2="260" y2="136" stroke="#FFF2E4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="332" y1="120" x2="260" y2="136" stroke="#FFF2E4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <line x1="140" y1="84" x2="148" y2="156" stroke="#FFF2E4" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  <circle cx="204" cy="104" r="12" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <circle cx="260" cy="136" r="12" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <circle cx="140" cy="84" r="12" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <circle cx="148" cy="156" r="12" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <circle cx="332" cy="120" r="12" fill="none" stroke="#FFF2E4" stroke-width="2"/>
+  <circle cx="204" cy="104" r="6" fill="#FFF2E4"/>
+  <circle cx="260" cy="136" r="6" fill="#FFF2E4"/>
+  <circle cx="140" cy="84" r="6" fill="#FFF2E4"/>
+  <circle cx="148" cy="156" r="6" fill="#FFF2E4"/>
+  <circle cx="332" cy="120" r="6" fill="#FFF2E4"/>
+</svg>

@@ -1,0 +1,38 @@
+<!--
+  Substitution contract for scripts/gen-assets.ts, the only consumer of this template: it replaces
+  each marker below with a string from src/content/global.ts, then rasterises this file to the
+  link-preview image at exactly 1200 by 630.
+
+  Markers, each written with double braces and each the entire content of its own text element:
+    - the title marker, the whole content of the element with id social-title and data-slot title,
+      replaced by the socialImageTitle field of src/content/global.ts;
+    - the text marker, the whole content of the element with id social-text and data-slot text,
+      replaced by the socialImageText field of src/content/global.ts.
+
+  Replacement rule: XML-escape the string (ampersand, less-than, greater-than, double quote, single
+  quote); when the escaped string is wider than data-wrap-width at the declared font-size, wrap it
+  greedily at spaces into tspan children carrying x="96" and a dy of data-line-height; never change
+  the font family, font size, position or colour; write the result to a temporary file and rasterise
+  that file at exactly 1200 by 630.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none" aria-hidden="true" focusable="false">
+  <rect width="1200" height="630" fill="#FFF2E4" />
+  <path d="M 808 180 H 1080 A 24 24 0 0 1 1104 204 V 426 A 24 24 0 0 1 1080 450 H 808 A 24 24 0 0 1 784 426 V 204 A 24 24 0 0 1 808 180 Z" fill="none" stroke="#4A3E34" stroke-width="2" />
+  <path d="M 868 252 L 924 252" fill="none" stroke="#A8998A" stroke-width="2" />
+  <path d="M 956 268 L 980 300" fill="none" stroke="#A8998A" stroke-width="2" />
+  <path d="M 1004 332 L 1028 364" fill="none" stroke="#A8998A" stroke-width="2" />
+  <path d="M 1020 380 L 868 380" fill="none" stroke="#A8998A" stroke-width="2" />
+  <path d="M 848 360 L 848 272" fill="none" stroke="#A8998A" stroke-width="2" />
+  <circle cx="848" cy="252" r="12" fill="none" stroke="#1D0E03" stroke-width="2" />
+  <circle cx="944" cy="252" r="12" fill="none" stroke="#1D0E03" stroke-width="2" />
+  <circle cx="992" cy="316" r="12" fill="none" stroke="#1D0E03" stroke-width="2" />
+  <circle cx="1040" cy="380" r="12" fill="none" stroke="#1D0E03" stroke-width="2" />
+  <circle cx="848" cy="380" r="12" fill="none" stroke="#1D0E03" stroke-width="2" />
+  <circle cx="848" cy="252" r="6" fill="#4A3E34" />
+  <circle cx="944" cy="252" r="6" fill="#4A3E34" />
+  <circle cx="992" cy="316" r="6" fill="#C8864A" />
+  <circle cx="1040" cy="380" r="6" fill="#4A3E34" />
+  <circle cx="848" cy="380" r="6" fill="#4A3E34" />
+  <text id="social-title" data-slot="title" x="96" y="248" data-wrap-width="640" data-line-height="72" font-family="Urbanist" font-size="64" font-weight="600" fill="#1D0E03">{{SOCIAL_IMAGE_TITLE}}</text>
+  <text id="social-text" data-slot="text" x="96" y="456" data-wrap-width="640" data-line-height="44" font-family="Urbanist" font-size="32" font-weight="400" fill="#4A3E34">{{SOCIAL_IMAGE_TEXT}}</text>
+</svg>

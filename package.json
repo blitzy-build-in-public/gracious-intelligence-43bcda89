@@ -1,0 +1,39 @@
+{
+  "name": "gracious-intelligence",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "npm run assets",
+    "build": "node --input-type=module -e \"import {execSync} from 'node:child_process'; if (process.env.PUBLIC_SITE_LIVE === 'true') { try { execSync('npm run launch-check', { stdio: 'inherit' }); } catch { process.exit(1); } }\" && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "assets": "node scripts/gen-assets.ts",
+    "launch-check": "node scripts/launch-check.ts",
+    "screenshots": "node scripts/screenshots.ts",
+    "test": "npm run assets && npm run test:static && npm run test:copy && npm run test:content && npm run test:e2e && npm run test:lighthouse",
+    "test:static": "node --test tests/static/builds.test.ts tests/static/output.test.ts tests/static/residue.test.ts tests/static/source.test.ts",
+    "test:copy": "node --test tests/static/copy.test.ts",
+    "test:content": "node --test tests/static/content.test.ts",
+    "test:e2e": "playwright test",
+    "test:lighthouse": "node tests/lighthouse/run.ts"
+  },
+  "dependencies": {
+    "astro": "7.4.13",
+    "@phosphor-icons/core": "2.1.1",
+    "tailwindcss": "4.3.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "typescript": "6.0.3",
+    "@astrojs/check": "0.9.12",
+    "sharp": "0.35.5",
+    "@playwright/test": "1.65.1",
+    "@axe-core/playwright": "4.14.0",
+    "lighthouse": "13.6.0"
+  }
+}

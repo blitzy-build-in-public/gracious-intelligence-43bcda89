@@ -1,0 +1,235 @@
+---
+/**
+ * The mobile navigation island: the burger trigger and the five global navigation links it
+ * collapses (AAP 0.8.1, 0.8.4, rule W-2).
+ *
+ * The server HTML is the complete, readable menu. The list ships visible, so a reader without
+ * JavaScript — or one whose script has not run yet — gets a plain list of the five links and
+ * follows them like any other anchor; the module script at the foot of this file then collapses
+ * that list behind the trigger and keeps the two states in step. That ordering is the whole
+ * reason the island is safe, and it is why the trigger itself ships with the `hidden` attribute
+ * and is revealed last: a button that cannot yet act is never on screen, so no reader meets a
+ * control that does nothing (rule B-4).
+ *
+ * The five labels are copy, so they arrive as `nav` from `src/content/global.ts`, which the
+ * header, the footer and this menu share as one definition (A-4). The trigger's two names
+ * arrive as `labels` from `src/content/ui.ts`. Nothing user-visible is typed in this file
+ * (rule W-1), and no Figma string, logo or photograph is involved: the design reference supplies
+ * the trigger's shape alone — a 24x24 three-bar glyph with no box, fill or padding around it in
+ * the mobile header row (`16:218`, screen `2264:3487`) — while the template draws no open panel
+ * anywhere, so the panel below is composed from the tokens the manifest declares.
+ *
+ * The glyph comes from `Icon.astro`, which inlines the Phosphor source from the installed
+ * package at build time: no icon font, no icon host, no request (rule B-1). Its ink is
+ * `currentColor`, which is the page's Chocolate on the Cream ground (17.08:1), the ink every
+ * surrounding block already sets.
+ */
+import Icon from './Icon.astro';
+import type { Link } from '../content/global.ts';
+
+interface Props {
+  /** The five global navigation links from `global.nav`; each label is its visible text. */
+  nav: Link[];
+  /**
+   * A8's two trigger names: `open` while the list is collapsed, `close` while it is showing.
+   * They are the trigger's only accessible name, carried by the two `sr-only` spans below rather
+   * than by a label attribute, so the name changes with the state instead of contradicting it.
+   */
+  labels: { open: string; close: string };
+  /**
+   * The current route's path, so its link can carry `aria-current="page"` — an extension to the
+   * two props AAP 0.8.1 records for this component, on the same footing as `Button.astro`'s
+   * `sendingLabel`: the attribute has to name the current page, only the caller knows which page
+   * that is (the header's own `current` prop), and a component may not read the location itself
+   * (rule B-2). The attribute is omitted when this is absent, so a caller that passes only
+   * `nav` and `labels` renders exactly the declared interface.
+   */
+  current?: string;
+}
+
+const { nav, labels, current } = Astro.props;
+
+/**
+ * The id the trigger's `aria-controls` names, and the list's own id. One menu is rendered per
+ * page — `Header.astro` is its only consumer — so a fixed id is both unique in every document
+ * and deterministic across builds, which an id derived from render order would not be.
+ */
+const LIST_ID = 'mobile-menu';
+
+/**
+ * The wrapper is hidden from the 900-pixel step up, where the header shows the navigation in its
+ * own row instead (PA-5, AAP 0.8.4), so exactly one navigation landmark is ever in the
+ * accessibility tree. Column, so the trigger can sit at the inline end of whatever row the header
+ * places this in while the panel below spans the full width the menu is given; `flex-1` lets the
+ * menu take the space beside the wordmark rather than shrink to the 24-pixel trigger.
+ */
+const NAV = 'wide:hidden flex flex-1 flex-col';
+
+/**
+ * The trigger's cell, hidden until the script has wired it. The hiding is the `hidden` attribute
+ * and never a `display` utility: a class would outrank the attribute and keep the trigger
+ * invisible after the script cleared it, so the only class here is the alignment that puts the
+ * trigger flush to the row's inline end — the position the design reference gives it as the last
+ * child of its space-between header row.
+ */
+const CONTROL = 'self-end';
+
+/**
+ * The trigger is the glyph's own 24x24 box and nothing more, which is the box the design draws
+ * (no fill, no outline, no radius, no padding, no effect around it) and also the 24x24 minimum
+ * rule B-3 sets for a target. The design draws no hover or press state for it and no State
+ * variant exists in the file, so none is invented here: the theme's `:focus-visible` ring is the
+ * only state it takes.
+ *
+ * The glyph itself is Phosphor's `list`, the member `Icon.astro` maps this design's Burger
+ * variant to, because the design's own mark is artwork the rules keep out of the output (rule
+ * W-1) and the icon set has to arrive from the installed package instead (rule B-1). The two
+ * drawings are the same three equal bars with the same rounded caps, but not the same
+ * proportions: the design's ink fills 22x17 of the 24x24 box and this one 18x13.5 of it, which
+ * leaves the bars a little shorter and the stack a little tighter inside a box of exactly the
+ * right size. That is the closest a permitted drawing comes, so it is recorded here rather than
+ * quietly corrected by centring the ink away from the box the design fixes.
+ */
+const TRIGGER = 'inline-flex items-center justify-center';
+
+/**
+ * The panel keeps the Cream ground the brief names, so it stays opaque wherever the header
+ * places it. It takes no fill of its own beyond that, no radius and no border box, because the
+ * design's blocks are separated by rules rather than framed.
+ *
+ * The items carry the manifest's 20-pixel rhythm — `space-20`, which is also the only navigation
+ * stacking value the design reference itself supplies, its list's own gap — applied by a utility
+ * that passes over the first item, so no zero-value class is needed to undo it there. The list
+ * keeps the default block display on purpose: its collapsed state is the `hidden` attribute, and
+ * a `display` utility on the list would outrank that attribute and leave the menu permanently
+ * open.
+ */
+const LIST = 'bg-bg-cream space-y-20';
+
+/**
+ * `border-hairline` is the decorative separator between items — never the only boundary of a
+ * control, since every link is a block target in its own right — and it is dropped after the
+ * last item so the panel closes on its content instead of on a stray line.
+ */
+const ITEM = 'border-hairline last:border-0';
+
+/**
+ * The navigation label rung (AAP 0.2.3, 0.6.3): Geist Mono 500 at the theme's 12-pixel mobile
+ * step, stepping to its 16-pixel desktop one at the 900-pixel breakpoint on its own. Upper case
+ * is presentation, applied by CSS, so the DOM text stays exactly as the content layer writes it
+ * (AAP 0.6.6). Each link fills its row — a full-width target rather than a word-sized one — and
+ * takes the 12-pixel block padding the design uses on its controls; the base layer's own
+ * minimum keeps every one of them at 24 pixels tall whatever its label (rule B-3).
+ */
+const LINK = 'type-button-1 mono-uppercase flex w-full items-center py-12';
+
+/** The name spans are rendered for assistive technology alone; the visible content is the glyph. */
+const NAME = 'sr-only';
+---
+
+<nav class={NAV} data-mobile-menu>
+  <div class={CONTROL} data-mobile-menu-control hidden>
+    <button type="button" class={TRIGGER} aria-controls={LIST_ID} data-mobile-menu-trigger>
+      <Icon name="list" />
+      <span class={NAME} data-mobile-menu-open>{labels.open}</span>
+      <span class={NAME} data-mobile-menu-close hidden>{labels.close}</span>
+    </button>
+  </div>
+  <ul id={LIST_ID} class={LIST} data-mobile-menu-list>
+    {
+      nav.map((item) => {
+        const isCurrent = current !== undefined && item.href === current;
+
+        return (
+          <li class={ITEM}>
+            <a
+              class={isCurrent ? `${LINK} nav-current` : LINK}
+              href={item.href}
+              aria-current={isCurrent ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<script>
+  /*
+   * The island's only script (rule W-2): no framework, no import, no hydration directive. Astro
+   * bundles it and the content security policy hashes it into `script-src`, so nothing here needs
+   * an inline allowance (AAP 0.4.5).
+   *
+   * Each menu is enhanced in the order that keeps the page honest at every step: the container is
+   * marked as enhanced, the list is collapsed, the trigger's behaviour is wired, and only then is
+   * the trigger revealed. A failure anywhere before the last step therefore leaves the reader with
+   * the readable no-JavaScript state rather than with a dead button or a half-open menu.
+   */
+  for (const element of document.querySelectorAll('[data-mobile-menu]')) {
+    if (!(element instanceof HTMLElement)) {
+      continue;
+    }
+
+    const menu = element;
+    const control = menu.querySelector('[data-mobile-menu-control]');
+    const trigger = menu.querySelector('[data-mobile-menu-trigger]');
+    const list = menu.querySelector('[data-mobile-menu-list]');
+    const openName = menu.querySelector('[data-mobile-menu-open]');
+    const closeName = menu.querySelector('[data-mobile-menu-close]');
+
+    if (
+      !(control instanceof HTMLElement) ||
+      !(trigger instanceof HTMLButtonElement) ||
+      !(list instanceof HTMLElement) ||
+      !(openName instanceof HTMLElement) ||
+      !(closeName instanceof HTMLElement)
+    ) {
+      continue;
+    }
+
+    /*
+     * One state setter for all three surfaces the state reaches: the list's visibility, the
+     * trigger's `aria-expanded`, and which of the two names the trigger exposes. They can
+     * therefore never disagree, which is what a reader relying on any one of them would notice.
+     */
+    const setOpen = (open: boolean): void => {
+      list.hidden = !open;
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      openName.hidden = open;
+      closeName.hidden = !open;
+    };
+
+    menu.setAttribute('data-mobile-menu-enhanced', '');
+    setOpen(false);
+
+    trigger.addEventListener('click', () => {
+      setOpen(list.hasAttribute('hidden'));
+    });
+
+    // Escape closes the menu from anywhere inside it, including from a link, and hands focus back
+    // to the trigger so the reader is not dropped at the top of the document (rule B-3). The guard
+    // reads the list's own state — a closed list is the one that carries the attribute — so the
+    // handler acts only on an open menu and a closed one is left alone. Nothing is trapped: the
+    // links stay in the tab order and Tab leaves the menu like any other group.
+    menu.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || list.hasAttribute('hidden')) {
+        return;
+      }
+
+      setOpen(false);
+      trigger.focus();
+    });
+
+    // Following a link collapses the menu behind the page that is about to load. Navigation
+    // itself belongs to the anchor, so nothing here prevents or awaits it.
+    for (const link of list.querySelectorAll('a[href]')) {
+      link.addEventListener('click', () => {
+        setOpen(false);
+      });
+    }
+
+    control.hidden = false;
+  }
+</script>

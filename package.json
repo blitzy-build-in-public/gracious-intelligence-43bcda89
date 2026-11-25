@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "astro dev",
     "prebuild": "npm run assets",
-    "build": "node --input-type=module -e \"import {execSync} from 'node:child_process'; if (process.env.PUBLIC_SITE_LIVE === 'true') { try { execSync('npm run launch-check', { stdio: 'inherit' }); } catch { process.exit(1); } }\" && astro build",
+    "build": "node --input-type=module -e \"import {execSync} from 'node:child_process'; let live; try { const {isLive} = await import('./src/lib/env.ts'); live = isLive(); } catch (error) { console.error(error instanceof Error ? error.message : error); process.exit(1); } if (live) { try { execSync('npm run launch-check', { stdio: 'inherit' }); } catch { process.exit(1); } }\" && astro build",
     "preview": "astro preview",
     "check": "astro check",
     "assets": "node scripts/gen-assets.ts",

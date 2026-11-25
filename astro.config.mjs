@@ -3,11 +3,20 @@ import tailwindcss from '@tailwindcss/vite';
 import { assertValidEnv, getFormEndpoint } from './src/lib/env.ts';
 
 /*
- * The build's single configuration point (AAP 0.10.3). It does five things and nothing else:
+ * The build's single configuration point (AAP 0.10.3). It does seven things and nothing else:
  * static files only with nothing executing per request, the two CSP directives Astro does not
- * derive, Vite's asset inlining switched off, the Tailwind plugin, and the configuration check
- * below.
+ * derive, Vite's asset inlining switched off, the Tailwind plugin, the Markdown highlighter
+ * switched off, the configuration check that runs at module load, and the build telemetry
+ * opt-out.
  */
+
+/*
+ * Astro records an anonymous build-time event for every command that evaluates this config. The
+ * build reaches the package registry and the two font releases and nothing else (AAP 0.4.5), so
+ * the event is switched off here, in the repository, rather than left to each machine's own
+ * global telemetry preference.
+ */
+process.env.ASTRO_TELEMETRY_DISABLED = '1';
 
 /*
  * Validation runs at module load, so every command that reads this config — dev, build, check,

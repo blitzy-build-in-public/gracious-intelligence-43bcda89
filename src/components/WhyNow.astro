@@ -1,0 +1,263 @@
+---
+/**
+ * The conditional statistics block on `/about`: three figures and the source line that
+ * attributes them, rendered as one unit (AAP 0.7.4, 0.8.1).
+ *
+ * The block exists because the company is pre-product and the specification's only statistics
+ * are figures the owner has yet to confirm. Rule B-4 forbids an unattributed or invented
+ * statistic, so the fields that make the claim publishable are the same fields that switch the
+ * block: `sourceConfirmed` on the page module and `show` here. AAP 0.7.4 states the contract the
+ * markup below enforces — "the figures never appear without the attribution, and the
+ * attribution never appears without the figures" — which is why every part lives inside a single
+ * guard rather than in three separately conditional fragments.
+ *
+ * The strings are specification copy handed in as `data`, so the component holds no copy of its
+ * own: no heading, no figure, no label and no attribution is written here, generalised here or
+ * shortened here (rules W-1, B-4). The source line is the one place on the site where another
+ * organisation may be named, and only because A5's own sentence names it; the component renders
+ * that sentence exactly as the content module holds it.
+ *
+ * The design reference draws a five-milestone timeline at this position on the About page
+ * (desktop node 2150:1437, mobile counterpart 2264:4281) and the two statistics patterns in its
+ * Story block (`2129:801`). Its content is another business's and never reaches this page (rule
+ * W-1); what the block adopts is the anatomy the plan sanctions — a chestnut bullet with the
+ * hairline that runs from it, the value and mono caption beside it, the narrow-width staircase,
+ * and the hairline that closes the group — expressed entirely through the theme's tokens (AAP
+ * 0.2.3, 0.6.3, 0.8.4).
+ *
+ * It is static markup: no script, no island, no framework import and no request (rules B-1, W-2),
+ * and nothing in it is interactive, so it adds no tab stop, no focus ring and no pointer state to
+ * the page (rule B-3).
+ */
+
+import SectionHeading from './SectionHeading.astro';
+import type { WhyNowCopy } from '../content/about.ts';
+
+interface Props {
+  /**
+   * A5's Why now copy — the heading, the three figures and the source line — exactly as
+   * `about.whyNow` holds it (AAP 0.8.2). `WhyNowCopy` is the shape's single definition, so a
+   * field renamed in the content module fails the type check here rather than rendering blank.
+   */
+  data: WhyNowCopy;
+  /**
+   * The build-time switch, fed from `about.sourceConfirmed`, which defaults to `false` until the
+   * owner confirms a source (AAP 0.7.4, 0.16.2). A false value renders nothing at all.
+   */
+  show: boolean;
+}
+
+const { data, show } = Astro.props;
+
+const { heading, figures, source } = data;
+
+/**
+ * The block is one unit or it is nothing. `show` is the owner's switch, and the three content
+ * checks below cover the other ways the unit could arrive incomplete: a heading that has not been
+ * written, an empty figure list, and an attribution that has not been supplied. Rendering a
+ * heading and an attribution around no figures, or figures with no attribution, is exactly the
+ * state rule B-4 forbids, so each of them suppresses the block rather than emitting part of it.
+ * A blank string counts as absent — trimming decides that and only that, so the strings that
+ * reach the page are the content layer's own.
+ */
+const isComplete =
+  heading.trim() !== '' && figures.length > 0 && source.trim() !== '';
+
+if (!show || !isComplete) {
+  return;
+}
+
+/**
+ * The block's geometry, on the timeline's own padding pair (AAP 0.2.3, 0.6.3): the content
+ * column, then `space-60` above and below at the narrow width and `space-180` above with
+ * `space-80` below from the theme's 900-pixel breakpoint, which is the design's 180/80 pairing
+ * on its 4-pixel grid (PA-1). The wide step comes from the theme's `--breakpoint-wide` token
+ * through Tailwind's `wide:` variant, so the breakpoint has one source (PA-5).
+ */
+const LAYOUT = 'content pt-60 pb-60 wide:pt-180 wide:pb-80';
+
+/**
+ * The figure grid, on the timeline's own column model (AAP 0.2.1, 0.2.3, 0.8.4).
+ *
+ * At the wide width it is the design's three columns with its 116-pixel gutter. The cells fill
+ * the 1344-pixel content column rather than repeating the design's fixed 220-pixel cell, because
+ * no token in the manifest expresses 220 and the block would otherwise need a length written into
+ * a component; the column count, the gutter and the rhythm are the design's, and the type inside
+ * each cell is unchanged.
+ *
+ * At the narrow width it is the design's two columns on a 48-pixel gutter — the design's own 50
+ * snapped to the scale — and the first figure takes the second column, which is the staircase the
+ * milestone grid uses: one figure offset to the right, then the rest in pairs. Three figures
+ * therefore lay out as 1 + 2, the same form the five-milestone original shows as 1 + 2 + 2, and
+ * the first cell's placement is reset at the wide width where all three sit in one row.
+ *
+ * Row gaps follow the same rhythm: `space-40` between narrow rows (the design's 36, the nearest
+ * step of the scale on a tie broken upwards for a gap) and `space-60` between wide rows, the
+ * timeline's own gap. The list's top margin is the block's own gap — the design's 32 at the narrow
+ * width and 60 at the wide one — so the heading and the figures are spaced as the template spaces
+ * its block's rows, and it steps with the theme's 900-pixel breakpoint like everything else here.
+ */
+const FIGURES =
+  'mt-32 grid grid-cols-2 gap-x-48 gap-y-40 wide:mt-60 wide:grid-cols-3 wide:gap-x-116 wide:gap-y-60';
+
+/**
+ * One figure: the bullet row above its value and label, on the milestone's own column gap —
+ * `space-24` at the narrow width and `space-56` at the wide one (AAP 0.2.3).
+ */
+const FIGURE = 'flex flex-col items-start gap-24 wide:gap-56';
+
+/** The staircase's first cell sits in the second column until the wide grid resets it. */
+const FIRST_CELL = 'col-start-2 wide:col-start-auto';
+
+/**
+ * The bullet row: the dot, then the hairline that runs from it to the edge of its cell. The
+ * template's timeline carries both — a dot and a rule stub to its right on the same line (nodes
+ * `2150:1449`, `2264:4299`) — and the hairline rules are part of the identity the block keeps
+ * (AAP 0.8.4). The design's 17-pixel clearance becomes `space-16` and its 11-pixel one
+ * `space-12`; the stub runs to the cell's edge rather than across the gutter, which is the one
+ * geometry a grid cell can express without a length or an overflow outside the token set.
+ */
+const BULLET_ROW = 'flex w-full items-center gap-12 wide:gap-16';
+
+/**
+ * The bullet, decorative and nothing else: `color-decoration-chestnut` measures about 2.8:1 on
+ * the Cream ground, which is why it carries no text and no control boundary and why it is hidden
+ * from assistive technology rather than announced as content (AAP 0.6.3, rule B-3). Its diameter
+ * is the design's own, `space-16` at the narrow width and `space-20` at the wide one, and
+ * `radius-full` is what makes it a bullet rather than a square.
+ */
+const BULLET =
+  'block size-16 shrink-0 rounded-full bg-decoration-chestnut wide:size-20';
+
+/**
+ * The stub beside a dot: the theme's hairline rule and nothing else, so it is Khaki at one pixel,
+ * decorative, and never the only boundary of a control. It takes whatever width the cell has left
+ * after the dot and the clearance, which is why it needs no length of its own; a flex item with no
+ * content is one pixel tall, and it sits on the dot's centre line with the row's `items-center`.
+ */
+const BULLET_RULE = 'border-hairline flex-1';
+
+/**
+ * The value and its caption, on the stat pattern's own gap between the pair — the design separates
+ * the figures row from its caption by 12 pixels at the wide width and 4 at the narrow one
+ * (`2129:801`, `2264:3882`), and both are steps of the spacing scale.
+ *
+ * The column is capped at the cell's width (`max-w-full`) because a figure whose value is one long
+ * word at the narrow width is wider than its half of the 358-pixel column: without the cap the
+ * flex item takes its own max-content width and the word runs out of its cell into the gutter.
+ * Capped, the value wraps inside the cell it belongs to — which is what the theme's inherited
+ * `overflow-wrap: break-word` then applies to — and nothing spills into a neighbour at 320 or
+ * 360 pixels.
+ */
+const FIGURE_TEXT = 'flex max-w-full flex-col gap-4 wide:gap-12';
+
+/**
+ * The rungs a figure value may occupy, largest first, and the budget each one holds in the
+ * narrower of the two content columns.
+ *
+ * A figure value is the design's largest display step (`text-heading-1`: Urbanist 500 at 80 on the
+ * wide width and 32 at the narrow one), and a slot whose copy does not fit steps down to the next
+ * smaller rung of its own group rather than taking a size invented between rungs (AAP 0.6.3).
+ *
+ * The narrow cell is the constraint, and it is the 320-pixel reflow width that binds it: the 358
+ * pixel column of the 390-pixel artboard splits into two cells, and at 320 the same split leaves
+ * 120 pixels a cell. Measured in Urbanist 500, a character at the 32-pixel step advances about
+ * 18.5 pixels, at the 24-pixel step of `text-heading-2` about 13.9 and at the 20-pixel step of
+ * `text-heading-3` about 11.6 — so a 120-pixel cell holds six characters at the largest step,
+ * eight at the next and ten at the smallest. `word` is therefore the length of the longest single
+ * word a value may hold, which is what stops a value breaking mid-word, and `total` bounds the
+ * whole string so a long run of short words steps down too instead of setting eight lines deep.
+ *
+ * The smallest rung admits every value, so a long one can never step below the scale. A value
+ * within a character or two of a budget simply takes the rung that holds it — no size between
+ * rungs is ever used, and a figure short enough to fit the design's own step keeps it.
+ */
+type ValueRung = 'type-heading-1' | 'type-heading-2' | 'type-heading-3';
+
+const VALUE_LADDER: readonly ValueRung[] = [
+  'type-heading-1',
+  'type-heading-2',
+  'type-heading-3',
+];
+
+interface ValueBudget {
+  /** The longest single word the rung holds without breaking it. */
+  word: number;
+  /** The whole value the rung holds before its line count outgrows the block. */
+  total: number;
+}
+
+const VALUE_BUDGET: Record<ValueRung, ValueBudget> = {
+  'type-heading-1': { word: 6, total: 18 },
+  'type-heading-2': { word: 8, total: 26 },
+  'type-heading-3': {
+    word: Number.POSITIVE_INFINITY,
+    total: Number.POSITIVE_INFINITY,
+  },
+};
+
+/** The floor of the scale, and the fallback the ladder cannot exhaust. */
+const SMALLEST_RUNG: ValueRung = 'type-heading-3';
+
+/** The longest run of non-space characters in a value: the part a cell must not break. */
+function longestWord(value: string): number {
+  return value
+    .split(/\s+/)
+    .reduce((longest, word) => Math.max(longest, word.length), 0);
+}
+
+/**
+ * The rung every figure takes, chosen once for the whole block so the three figures always set at
+ * the same size: the largest rung whose budget holds every value, measured as each will be
+ * rendered — trimmed for length, but never rewritten — so the choice depends on the copy and the
+ * strings themselves reach the DOM exactly as the content layer holds them (rule B-4).
+ */
+const VALUE_RUNG: ValueRung =
+  VALUE_LADDER.find((rung) =>
+    figures.every(
+      (figure) =>
+        longestWord(figure.value) <= VALUE_BUDGET[rung].word &&
+        figure.value.trim().length <= VALUE_BUDGET[rung].total,
+    ),
+  ) ?? SMALLEST_RUNG;
+
+/**
+ * The caption beneath a value: the design's mono meta step (`text-button-2`, Geist Mono at 12 on
+ * the wide width and 10 at the narrow one) in Coffee Bean, which is the palette's muted ink on
+ * Cream at about 7.3:1 — Khaki, the template's own muted tone, measures 2.51:1 there and carries
+ * no text on this ground (AAP 0.6.4, rule B-3). The upper case is presentation, applied by CSS to
+ * a string the content layer writes in its own case, exactly as the eyebrow, navigation and button
+ * faces do (AAP 0.6.6).
+ */
+const LABEL = 'type-button-2 mono-uppercase text-ink-coffee';
+
+/**
+ * The attribution: the design's small body step (`text-body-4`) in the same muted Coffee Bean ink,
+ * `space-48` below the figures at the narrow width and `space-80` at the wide one, closed by the
+ * hairline the theme draws for a block's end. The rule is decorative — it separates the block from
+ * what follows and is never the only boundary of a control — so `border-hairline` is Khaki at
+ * 1 pixel and `space-16` of padding keeps it from sitting on the descenders above it.
+ */
+const SOURCE = 'type-body-4 text-ink-coffee mt-48 wide:mt-80 pb-16 border-hairline';
+---
+
+<section class={LAYOUT}>
+  <SectionHeading heading={heading} as="h2" />
+  <ul class={FIGURES}>
+    {
+      figures.map((figure, index) => (
+        <li class={`${FIGURE} ${index === 0 ? FIRST_CELL : ''}`.trim()}>
+          <span class={BULLET_ROW}>
+            <span class={BULLET} aria-hidden="true" />
+            <span class={BULLET_RULE} aria-hidden="true" />
+          </span>
+          <div class={FIGURE_TEXT}>
+            <p class={`${VALUE_RUNG} text-ink-chocolate`}>{figure.value}</p>
+            <p class={LABEL}>{figure.label}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+  <p class={SOURCE}>{source}</p>
+</section>

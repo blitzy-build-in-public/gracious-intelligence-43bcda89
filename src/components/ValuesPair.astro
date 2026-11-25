@@ -1,0 +1,158 @@
+---
+/**
+ * The Vision and Mission pair on `/about`: two cards, Vision first, each a decorative panel above a
+ * mono title and a justified body, closed by a single hairline (AAP 0.2.1, 0.2.3, 0.8.1).
+ *
+ * The block is exactly what the design reference draws and nothing more: an image frame at the media
+ * radius, a mono title, a justified paragraph, and one rule beneath each card. There is no card fill,
+ * no border box, no card-level radius and no shadow — the hairline is the card's only containment
+ * (AAP 0.2.1) — so the two cards read as two columns of type on the page rather than as boxed tiles,
+ * which is why nothing here names a background, an elevation or a corner radius of its own.
+ *
+ * Both statements arrive as props from `about.values`, and each card's panel arrives beside them, so
+ * the component holds no copy and borrows nothing from the design file (rule W-1): the titles and the
+ * bodies are A5's own, and the two panels are the project's authored SVGs rather than the frame's
+ * photography (AAP 0.2.4). Nothing is fetched, since `IllustrationPanel` inlines a local source and
+ * the fonts are served from this origin (rule B-1); nothing is invented, so the block states only the
+ * two claims the specification gives it (rule B-4); and no configuration value is read (rule B-2).
+ *
+ * It is not an island — no script, no framework import, no hydration directive — so the pair is
+ * build-time markup that reads with scripts disabled (rule W-2), and nothing in it is interactive:
+ * no link, no control and no tab stop, so it adds nothing to the keyboard path through the page and
+ * needs no focus ring (rule B-3).
+ */
+import IllustrationPanel from './IllustrationPanel.astro';
+
+/**
+ * `Item` and `PanelVariant` come from their declaring module. `src/content/about.ts` imports both
+ * types from there without re-exporting them, so `./global.ts` is the only path that resolves.
+ */
+import type { Item, PanelVariant } from '../content/global.ts';
+
+interface Props {
+  /**
+   * The two statements A5 gives this block, `about.values.items`: the card title and the card body,
+   * Vision first and Mission second. The order is content, not styling, so it is checked below
+   * rather than reversed, sorted or re-flowed here.
+   */
+  items: Item[];
+  /**
+   * The two decorative panels, `about.values.media`, paired with `items` by index. The pair is
+   * `vision` then `mission` (AAP 0.2.4): a panel that does not belong to its statement would caption
+   * the wrong card, so the values are checked below rather than trusted.
+   */
+  media: PanelVariant[];
+}
+
+const { items, media } = Astro.props;
+
+/**
+ * The panels this block pairs with its two cards, in the order the design reference draws them
+ * (AAP 0.2.1, 0.2.4). It is also the block's expected card count, so the two checks below share one
+ * number rather than stating two.
+ */
+const PANELS: readonly PanelVariant[] = ['vision', 'mission'];
+
+/** Names what a prop actually held, so a failure says what arrived instead of only what was wanted. */
+function describe(value: unknown): string {
+  return Array.isArray(value) ? `${value.length} entries` : `a value of type ${typeof value}`;
+}
+
+/**
+ * The pair is exactly two cards. A third statement, a missing one, or a value that is not an array
+ * at all is a content mistake that would render a lopsided block, so it stops the build instead of
+ * publishing one (AAP 0.7.4).
+ */
+if (!Array.isArray(items) || items.length !== PANELS.length) {
+  throw new Error(
+    `ValuesPair: the Vision and Mission pair holds exactly ${PANELS.length} cards, Vision first, but received ${describe(items)}.`,
+  );
+}
+
+/**
+ * The panels are `vision` then `mission`, index-aligned with those cards. Beyond the count, the order
+ * matters: swapping the two would put Mission's drawing above Vision's statement while the copy
+ * stayed in place, which no type can catch and no reader would forgive.
+ */
+if (
+  !Array.isArray(media) ||
+  media.length !== PANELS.length ||
+  PANELS.some((panel, index) => media[index] !== panel)
+) {
+  const received = Array.isArray(media) ? `${describe(media)} (${media.join(', ')})` : describe(media);
+
+  throw new Error(
+    `ValuesPair: the two cards pair with the panels ${PANELS.join(' then ')}, but received ${received}.`,
+  );
+}
+
+/**
+ * The block's geometry: the page's content column (AAP 0.8.4), then the design's section rhythm —
+ * `space-60` above and below at the narrow width, and the wide width's own `space-80` above with
+ * `space-160` below, which is the pairing the design draws around this block (PA-1). The wide steps
+ * come from the theme's `--breakpoint-wide` token through Tailwind's `wide:` variant, the same
+ * declaration the theme's own media query reads, so the 900 breakpoint has one source (PA-5).
+ */
+const LAYOUT = 'content py-60 wide:pt-80 wide:pb-160';
+
+/**
+ * Two equal cards side by side once the design has the width for it, one column below that, and the
+ * `space-40` gutter between them either way (AAP 0.2.3, 0.8.4). A grid rather than a flex row keeps
+ * the two equal and stretches each card to the taller one, so the two hairlines land on the same
+ * line however differently the two bodies wrap — the alignment the design draws.
+ */
+const LIST = 'grid gap-40 wide:grid-cols-2';
+
+/**
+ * One card: the hairline beneath it and its own distance above that rule — `space-16` at the narrow
+ * width and `space-32` at the wide one, the design's card padding-bottom (AAP 0.6.3). Nothing else
+ * is drawn: no fill, no border box, no radius and no shadow (AAP 0.2.1).
+ */
+const CARD = 'border-hairline pb-16 wide:pb-32';
+
+/**
+ * The panel's frame: the media radius, and clipping so the drawing keeps that radius at all four
+ * corners. The frame takes the card's full width and the panel's own 4:3 proportions set its height,
+ * so the artwork is never stretched and no size is written here (AAP 0.2.4).
+ */
+const MEDIA = 'rounded-media overflow-hidden';
+
+/**
+ * The mono title: the scale's only mono heading, Geist Mono 500 at 36 at the wide width and 20 at the
+ * narrow one, leading 1.1 (AAP 0.2.2). Its ink is the page ground's primary one, 17.08:1 on Cream —
+ * never the design's Khaki, which measures 2.51:1 there and draws lines only (AAP 0.6.4, rule B-3).
+ * `space-20` is the design's media-to-title gap at both widths.
+ */
+const TITLE = 'type-heading-4 text-ink-chocolate mt-20';
+
+/**
+ * The body: body copy on its own rung, Urbanist 400 at 16 at the wide width and 10 at the narrow one,
+ * leading 1.5, and justified as the design sets it (AAP 0.2.2, 0.2.1). The ink is the palette's
+ * secondary one at 9.40:1 on Cream, because the design's Khaki body ink is measured on its own dark
+ * ground and cannot carry text here (AAP 0.2.2, rule B-3).
+ *
+ * The space above it is the design's own, measured per width: its card fixes a height and pushes the
+ * body down with `space-between`, which leaves about 39 at the narrow width and about 46 at the wide
+ * one, and those take the nearest step of the scale in each direction (PA-1: a gap snaps up) —
+ * `space-40` narrow and `space-48` wide. A fixed card height is not an option here, because our copy
+ * is longer than the template's and would overflow it rather than reshape it.
+ */
+const BODY = 'type-body-3 text-ink-taupe text-justify mt-40 wide:mt-48';
+---
+
+<section class={LAYOUT}>
+  {/* `role="list"` keeps the list semantics the stylesheet's marker reset would otherwise drop. */}
+  <ul class={LIST} role="list">
+    {
+      items.map((item, index) => (
+        <li class={CARD}>
+          <div class={MEDIA}>
+            <IllustrationPanel variant={media[index]} />
+          </div>
+          <h3 class={TITLE}>{item.title}</h3>
+          <p class={BODY}>{item.line}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>

@@ -1,0 +1,130 @@
+---
+/**
+ * A section or block heading, with at most one lead paragraph beneath it (AAP 0.6.2, 0.8.1).
+ *
+ * The site's section headings are one shape here rather than a dozen ad-hoc `<h2>`s, and no page can
+ * reach a second `h1` through this component: the level below is `h2 | h3` only, the page's single
+ * `h1` is the hero headline `Hero.astro` renders, and the level is clamped as the component renders,
+ * so no prop value — typed or not — reaches a level above it (rule B-3).
+ *
+ * Both strings arrive as props from the content layer, so the component holds no copy, borrows
+ * nothing from the design file and invents nothing (rules W-1, B-4). It composes no eyebrow, no
+ * action and no rule: a section that needs one places `Label.astro` or `Button.astro` beside it.
+ *
+ * Nothing sets a colour on the heading. The theme paints Chocolate ink on the Cream page ground and
+ * Cream inside the two dark bands through `.tone-inverse`, and the heading inherits whichever block
+ * it is composed into — 17.08:1 either way. The lead takes the palette's second ink, Taupe, which
+ * measures 9.40:1 on Cream, so the component sits on the Cream ground; the dark bands set their own
+ * ink and render their own headings. Alignment is the consumer's too, because `text-align` inherits.
+ *
+ * It is static markup: no script, no island, no framework import and no request (rules B-1, W-2),
+ * and nothing here is interactive, so it holds no tab stop and no focus ring.
+ */
+
+/**
+ * The two levels this component renders. `h1` is absent by design: each page's single `h1` is its
+ * hero headline (AAP 0.8.1), and heading levels stay sequential below it (rule B-3).
+ */
+type Level = 'h2' | 'h3';
+
+/**
+ * The heading rungs of the design's type scale, largest first (AAP 0.2.2, 0.6.3). Each is one class
+ * in `src/styles/theme.css`, carrying the family, size, weight and leading both widths need, so no
+ * size is written here — not between rungs, and not below the smallest one.
+ */
+type Rung = 'type-heading-1' | 'type-heading-2' | 'type-heading-3';
+
+interface Props {
+  /** The heading, exactly as the content layer writes it and in its own case (rule W-1). */
+  heading: string;
+  /**
+   * The one lead paragraph set beneath the heading. Absent — or blank after trimming, which is how a
+   * page whose field has not been filled arrives — renders nothing at all, rather than an empty
+   * paragraph and the gap that would stand where it was.
+   */
+  lead?: string;
+  /**
+   * The heading's level, chosen by the caller from its own context: a page-section heading is `h2`
+   * and is the default, a heading inside a block is `h3`. It is the only thing that moves the
+   * starting rung, because the rungs belong to the system rather than to the caller.
+   */
+  as?: Level;
+}
+
+const { heading, lead, as: Tag = 'h2' } = Astro.props;
+
+/**
+ * The level actually rendered. Only `h3` leaves the default, so anything else — an `h1` among them —
+ * takes `h2`. That clamp is what makes "one `h1` per page" a property of this component instead of a
+ * promise about its callers (rule B-3).
+ */
+const Heading: Level = Tag === 'h3' ? 'h3' : 'h2';
+
+/**
+ * The rungs each level may occupy, largest first (AAP 0.2.2, 0.6.3): a page-section heading starts
+ * at `heading-1` and a heading inside a block starts one rung down at `heading-2`, because the block
+ * is the narrower of the two settings in the design. From there a heading steps down when its own
+ * copy needs more lines than the design gives a heading.
+ */
+const LADDER: Record<Level, readonly Rung[]> = {
+  h2: ['type-heading-1', 'type-heading-2', 'type-heading-3'],
+  h3: ['type-heading-2', 'type-heading-3'],
+};
+
+/**
+ * The most characters each rung sets inside the design's line budget, and the measure the step-down
+ * is decided on.
+ *
+ * The budget is three lines — one more than the longest heading the design draws, so the step is
+ * taken only by copy that genuinely does not fit — in the narrower of the two content columns: the
+ * 358-pixel column of the 390-pixel artboard less its 16-pixel insets (AAP 0.2.1), at an average
+ * advance of about half the type size in Urbanist 500. That is 358 / (0.52 × 32) ≈ 21 characters a
+ * line at the 32-pixel mobile step of `heading-1` (64 in three lines), and ≈ 28 a line at the
+ * 24-pixel step of `heading-2` (86 in three). The mobile step governs, because one heading has to
+ * fit at both widths. These are planning estimates of a rendered measure rather than measured text:
+ * copy that lands within a character or two of a budget simply takes the rung that holds it, and no
+ * size between rungs is ever invented.
+ *
+ * The smallest rung admits every heading, which is what stops a long one stepping below the scale.
+ */
+const BUDGET: Record<Rung, number> = {
+  'type-heading-1': 64,
+  'type-heading-2': 86,
+  'type-heading-3': Number.POSITIVE_INFINITY,
+};
+
+/**
+ * The floor of the scale. The rung above always admits the copy, so this is the fallback the ladder
+ * cannot exhaust rather than a choice any heading is expected to reach by falling through.
+ */
+const SMALLEST_RUNG: Rung = 'type-heading-3';
+
+/** The largest rung on this level's ladder whose line budget holds this heading. */
+const RUNG: Rung =
+  LADDER[Heading].find((step) => heading.trim().length <= BUDGET[step]) ?? SMALLEST_RUNG;
+
+/**
+ * The heading's classes: its rung, and `text-balance`, so a heading that wraps shares its lines out
+ * evenly instead of leaving one word alone on the last of them.
+ */
+const HEADING_CLASS = `${RUNG} text-balance`;
+
+/**
+ * The lead's classes: the design's second body rung (`type-body-2`, Urbanist 400 at leading 1.5,
+ * 14 at the narrow width and 24 at the wide one), the palette's secondary ink, and one `space-16`
+ * step below the heading. That gap is this component's own relationship; the space around the pair
+ * belongs to the section.
+ */
+const LEAD_CLASS = 'type-body-2 text-ink-taupe mt-16';
+
+/** The lead as it will be rendered, kept exactly as the content layer wrote it. */
+const leadText = lead ?? '';
+
+/**
+ * A blank lead counts as absent. Trimming decides that and nothing else: the string that reaches the
+ * page is the caller's own, so the copy-fidelity comparison sees the specification's text.
+ */
+const hasLead = leadText.trim() !== '';
+---
+
+<Heading class={HEADING_CLASS}>{heading}</Heading>{hasLead && <p class={LEAD_CLASS}>{leadText}</p>}

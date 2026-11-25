@@ -1,0 +1,75 @@
+---
+/**
+ * `/404` — the page-not-found route, emitted as `404.html` (AAP 0.4.2, row nine of 0.8.4).
+ *
+ * Three regions and nothing more: the page top, the page-not-found heading and text that live inside
+ * it, and the one link back to the home route. `Hero` renders all of the first two — the heading as
+ * this page's single `h1` — so the composition adds no block the plan does not name. A8 gives the
+ * page-not-found copy a title, a heading, a text and a link, which is why there is no eyebrow, no
+ * status label and no error code here: a qualifier or a numeral the specification does not supply
+ * would be invented copy (rules W-1, B-4). The one control reaches `/`, which exists, so nothing on
+ * this route is a dead end (rule B-4).
+ *
+ * The route is withheld from every crawler three independent ways (AAP 0.4.2, FR-8): it is linked
+ * from nowhere, `sitemap.xml` enumerates the eight navigable routes rather than walking this
+ * directory, and `forceNoindex` withholds it in every configuration. That flag is this page's only
+ * input in the scheme — `Meta.astro` derives the robots meta itself and merges the flag into it, so
+ * the 404 is `noindex, nofollow` whether or not the site is live, and no page can lose that state by
+ * mistake (WT-09). This file therefore composes no meta of its own: the head belongs to the layout.
+ *
+ * `notFound.meta` carries a title and no description, because A8 gives this page no description.
+ * `Meta.astro` emits the description tag only where a page has one, so the 404 carries none at all
+ * rather than an empty or invented tag (WT-15).
+ *
+ * The design reference has no not-found frame, so this page has nothing to match beyond the shape it
+ * borrows: the base layout and the About-page top block, whose section padding, right-aligned display
+ * wordmark, justified paragraph and bracket-framed panel `Hero` already supplies. The block paints no
+ * ground — the Cream page and its Chocolate ink come from the theme — the panel is one of the nine
+ * illustrations authored for this project rather than an export from the file, and the button is the
+ * site's one control shape in its `default` tone, the reference's cream-on-dark pairing mirrored onto
+ * the Cream ground (AAP 0.6.3). The reference draws no hover, focus, pressed or disabled state for
+ * that control, so none is invented here: the theme's single `:focus-visible` ring is the only state
+ * it gains (rule B-3), and it stays keyboard-operable as an ordinary link.
+ *
+ * The wordmark in the top block is the reference's own display-wordmark slot, kept because the page
+ * top of a frameless route is where it belongs; it is type, not a heading and not a control, so it
+ * adds no second heading level and no tab stop (AAP 0.2.2, 0.2.4). `Wordmark` sets it at the rung the
+ * fit rule fixes for a twenty-one-character name, right-aligned as the reference draws it.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import { global } from '../content/global.ts';
+import { notFound } from '../content/not-found.ts';
+
+import Button from '../components/Button.astro';
+import Hero from '../components/Hero.astro';
+
+/**
+ * The action region: the page's content column, then the room the reference leaves beneath its own
+ * page-top block — `space-60` at the narrow width and `space-80` at the wide one, that block's bottom
+ * padding in the design file and the only figure either artboard gives for the space that follows it.
+ *
+ * The gap above the button is not set here on purpose. The reference draws no call to action inside
+ * the page-top block, so there is no drawn distance to copy; the block's own foot already separates
+ * it from whatever comes next (`Hero` closes with `space-32` and `space-40`), and the two regions
+ * therefore meet on the rhythm the component carries instead of on a second spacing decision.
+ *
+ * `flex` makes the control a flex item, so it sits flush against the column's start edge rather than
+ * as an inline box on a baseline with the line box's descender space beneath it.
+ */
+const ACTION = 'content flex pb-60 wide:pb-80';
+---
+
+<BaseLayout meta={notFound.meta} nav={global.nav} footer={global.footer} forceNoindex>
+  <Hero
+    heading={notFound.heading}
+    text={notFound.text}
+    illustration="top"
+    wordmark
+    wordmarkText={global.wordmark}
+  />
+
+  <div class={ACTION}>
+    <Button label={notFound.action.label} href={notFound.action.href} tone="default" />
+  </div>
+</BaseLayout>

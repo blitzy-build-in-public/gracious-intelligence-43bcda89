@@ -1,0 +1,115 @@
+---
+/**
+ * The site's single button shape, in the two tones the palette defines (AAP 0.6.2, 0.6.3).
+ *
+ * `default` is the Chocolate plate carrying a Cream label, which is what a button on the Cream
+ * ground takes, and `inverse` is its mirror — the Cream plate carrying a Chocolate label, the
+ * pairing the design reference itself uses on its dark page and the one the two dark bands take.
+ * The label is copy handed in by the caller, so the component holds no string of its own (rule
+ * W-1), and it renders one element rather than a wrapper, so the semantics are never diluted.
+ *
+ * The design reference draws this control in its default state alone: the component set declares
+ * no hover, pressed, focus, disabled or loading variant (AAP 0.2.3), so none of those colours is
+ * invented here. The focus indicator is the theme's own `:focus-visible` ring, which the base
+ * layer re-points to Cream for everything inside a `.tone-inverse` band (AAP 0.6.4, rule B-3).
+ */
+
+/**
+ * `sendingLabel` extends the interface AAP 0.8.1 records for this component: `sending` has to
+ * relabel the control and a component may not hold the word, so the caller passes the text — the
+ * enquiry form hands it `FormCopy.sendingLabel`.
+ */
+interface Props {
+  label: string;
+  href?: string;
+  type?: 'submit' | 'button';
+  tone?: 'default' | 'inverse';
+  disabled?: boolean;
+  sending?: boolean;
+  sendingLabel?: string;
+}
+
+const {
+  label,
+  href,
+  type = 'button',
+  tone = 'default',
+  disabled = false,
+  sending = false,
+  sendingLabel,
+} = Astro.props;
+
+/** A submission in flight is inert for as long as it lasts, exactly as a disabled control is. */
+const isSending = sending === true;
+const isDisabled = disabled === true || isSending;
+
+/**
+ * A link is only rendered where the caller supplies a target, so no control ever leads nowhere. A
+ * link the caller marks disabled keeps that target — it is the caller's own label, not a missing
+ * `href`, that explains the state — and `aria-disabled` carries the marking on either element.
+ */
+const target = href ?? '';
+const isLink = target !== '';
+
+/**
+ * The relabel a submission in flight shows. A caller that sets `sending` without a label keeps
+ * its own text rather than rendering an empty control.
+ */
+const visibleLabel = isSending ? (sendingLabel ?? label) : label;
+
+/**
+ * The component's geometry, on the two metric pairs the design reference draws for it (AAP
+ * 0.2.3, 0.6.3): `radius-control`, with `space-16` above and below and `space-24` at each end
+ * at the wide width, and `space-12` / `space-16` at the narrow one, which is the padding the
+ * Mobile variant of the design carries and what closes the box to the height that variant
+ * draws. `.type-button-1` carries the label's family, size, weight and leading, and
+ * `.mono-uppercase` supplies the upper case in CSS, so the DOM text stays exactly as the
+ * content layer writes it (AAP 0.6.6). Every value above is a theme token; the wide step is the
+ * theme's own breakpoint — the 900 one — restated in rem, because the theme publishes no
+ * breakpoint token and a class attribute may hold no pixel literal. If that breakpoint ever
+ * moves, this variant moves with it.
+ */
+const SHAPE =
+  'type-button-1 mono-uppercase inline-flex items-center justify-center rounded-control text-center px-16 py-12 min-[56.25rem]:px-24 min-[56.25rem]:py-16';
+
+/**
+ * One shape in the two tones of the manifest (AAP 0.2.2, 0.6.3): the plate is the ink token and
+ * the label its counterpart. Both pairings measure 17.08:1, and neither adds a border, a shadow
+ * or a gradient, because the design system declares none. An unrecognised tone takes `default`,
+ * which is the pairing a control on the page's own ground needs.
+ */
+const INVERSE_PLATE = 'bg-ink-cream text-ink-chocolate';
+const DEFAULT_PLATE = 'bg-ink-chocolate text-ink-cream';
+
+const className = `${SHAPE} ${tone === 'inverse' ? INVERSE_PLATE : DEFAULT_PLATE}`;
+
+/*
+ * The theme carries no reduced-contrast ink step, so a disabled control cannot be dimmed without
+ * writing a literal the design system does not contain. The state is therefore carried by
+ * `disabled` and `aria-disabled`, by the relabel a sending control shows, and by the explanatory
+ * label the caller supplies (rule B-4) — the gap is reported rather than filled with a value.
+ */
+---
+
+{
+  isLink ? (
+    <a
+      href={target}
+      class={className}
+      aria-disabled={isDisabled ? 'true' : undefined}
+      aria-busy={isSending ? 'true' : undefined}
+    >
+      {visibleLabel}
+    </a>
+  ) : (
+    <button
+      type={type}
+      class={className}
+      disabled={isDisabled}
+      aria-disabled={isDisabled ? 'true' : undefined}
+      aria-busy={isSending ? 'true' : undefined}
+    >
+      {visibleLabel}
+    </button>
+  )
+}

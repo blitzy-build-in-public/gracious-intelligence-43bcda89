@@ -1,0 +1,6 @@
+{
+  "fixture": "tests/fixtures/vendor-names.json",
+  "expected": 15,
+  "composition": "The fifteen expected strings are the eleven vendor names of section 4 of the research document, in that section's own order, followed by the four banned phrases Aldermoor, Plumbline, best-in-class and world-leading.",
+  "obligation": "A consumer asserts tests/fixtures/vendor-names.json against \"expected\" and fails, naming the shortfall, whenever the two differ; it must never derive the expectation from the fixture's own length, which is four while section 4's eleven names are unavailable and which would let a scan pass with no vendor name checked at all; the expectation is fifteen because section 4 shortlists eleven and is recorded here rather than trimmed to fit the extraction (AAP §0.13.8, WT-13); and no name is invented, borrowed or topped up to close the gap (AAP §0.7.7)."
+}

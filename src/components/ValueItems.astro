@@ -1,0 +1,139 @@
+---
+/**
+ * "What Grace means": the four values, each a bracketed ordinal over a title and a line, as a 2x2
+ * grid beside the section heading at the wide width and beneath it at the narrow one (AAP 0.6.2,
+ * 0.8.1, 0.8.4).
+ *
+ * The ordinal is not copy. AAP 0.2.3 draws it from the item's position, so `src/styles/theme.css`
+ * owns the whole of it — the `value-items` counter, the two literal brackets and the two-digit
+ * zero padding — and this component contributes the class name and the DOM words alone. No numeral
+ * is typed here, none is stored in `src/content`, and the copy-fidelity comparison therefore sees
+ * exactly the specification's strings with nothing added (AAP 0.6.6).
+ *
+ * Each item's strings arrive as props from the content layer, which is the only source of user
+ * visible text: the component holds no string, borrows nothing from the design reference and
+ * invents nothing (rules W-1, B-4). The content layer gives A1's own ordering and count, so the
+ * list is never padded or trimmed to fit a layout.
+ *
+ * The design reference draws no box of any kind on this block (AAP 0.2.3): no card fill, no
+ * border, no radius, no shadow, no image and no icon, and no rule between the items — separation
+ * is whitespace. So the items are bare `<li>` elements, and the only geometry here is the grid,
+ * its gaps and the type steps.
+ *
+ * Type is the design's own scale and nothing between its steps (AAP 0.2.2): the title is the
+ * `heading-5` rung of Urbanist 600 and the line the `body-3` rung of Urbanist 400, both stepping
+ * from their Mobile to their Desktop size at the theme's own breakpoint. Ink follows the ground
+ * the palette actually uses: the ordinals and titles take Chocolate on the Cream page ground
+ * (17.08:1), and the dimmer line takes Coffee Bean (7.25:1) — never Khaki, which measures 2.51:1
+ * on Cream and so carries no text there (AAP 0.6.4, rule B-3).
+ *
+ * It is static markup: the items are a real list, the section has one heading and nothing in the
+ * block is interactive, so it adds no tab stop, no focus ring and no script (rules B-1, B-3, W-2).
+ */
+
+import SectionHeading from './SectionHeading.astro';
+import type { Item } from '../content/global.ts';
+
+interface Props {
+  /** The section heading, exactly as the content layer writes it and in its own case. */
+  heading: string;
+  /**
+   * The values, in the content layer's order. Each renders one ordinal, one title and one line;
+   * an empty array renders the heading and an empty list rather than an invented placeholder.
+   */
+  items: Item[];
+}
+
+const { heading, items } = Astro.props;
+
+/**
+ * The section's own separation from the blocks either side of it and the page's content column
+ * (AAP 0.8.4): `space-96` above and `space-60` below at the narrow width, `space-160` and
+ * `space-80` at the wide one. Each bound is the design's own padding for this section rather than
+ * a symmetric pair, and the wide halves come from the theme's `--breakpoint-wide` token through
+ * Tailwind's `wide:` variant, the same declaration the theme's media query reads (PA-5).
+ */
+const SECTION = 'content pt-96 pb-60 wide:pt-160 wide:pb-80';
+
+/**
+ * The two-part split: the heading and the grid stack at the narrow width with the design's
+ * `space-64` between them, and sit side by side from the breakpoint up.
+ *
+ * The wide columns are proportional, never fixed: the design reference draws the heading part at
+ * 680 and the grid at 610 of its 1340 content column, so those two measures are the tracks' ratio
+ * and the split holds as the viewport grows instead of pinning two pixel widths. Each track takes
+ * a zero minimum, so a long unbroken word wraps instead of widening the page (rule B-3). The
+ * gutter is the design's 50 snapped to `space-48`, the nearest step of the spacing scale (PA-1).
+ */
+const LAYOUT = 'grid gap-64 wide:grid-cols-[minmax(0,680fr)_minmax(0,610fr)] wide:gap-48';
+
+/**
+ * The heading's cell. The design pins the heading to the bottom of its column so it sits low
+ * beside the grid's second row; at the wide width this cell stretches to the grid's height and
+ * pushes the heading down. The eyebrow the design draws above it is not rendered: AAP 0.8.1 fixes
+ * this component's interface at a heading and the items, and the content layer declares no label
+ * for this block, so any eyebrow here would be invented copy (rules W-1, B-4).
+ */
+const HEADING_CELL = 'wide:flex wide:flex-col wide:justify-end';
+
+/**
+ * The grid: two columns by two rows at both widths, which is the design's arrangement at 1440 and
+ * again at 390. The horizontal gutter is the design's 32 at the narrow width and its 50 snapped to
+ * `space-48` at the wide one; the row gutter is the design's 56 at the wide width and its 50
+ * snapped to the nearer `space-48` at the narrow one (PA-1). `list-none` keeps the browser's
+ * markers off the items the counter numbers.
+ *
+ * The `value-items` class is the whole of this component's hold on the ordinal. The theme draws it
+ * as one generated string — `"[" counter(value-item, decimal-leading-zero) "]"` in a fixed box — so
+ * the brackets sit tight against the digits, where the design sets the numeral centred between them
+ * with about `space-8` of air on each side. That air cannot be added from here without typing a
+ * numeral or overruling the theme's rule, so it stays the theme's to place: the one rule that closes
+ * the gap is a `::before` of `"["` and a `::after` of `"]"` with the numeral between them.
+ */
+const LIST = 'value-items grid list-none grid-cols-2 gap-x-32 gap-y-48 wide:gap-x-48 wide:gap-y-56';
+
+/**
+ * One item: the ordinal the theme draws above, then its text.
+ *
+ * The design's authored distance from the ordinal to the title is `space-32` at both widths. The
+ * theme's ordinal carries `space-16` of its own trailing space, so this column contributes the
+ * remaining `space-16` as its minimum gap — no value outside the scale, and the ordinal's own box
+ * stays the theme's to define.
+ *
+ * `justify-between` adds the rest: a grid stretches every item to its row's height, and the design
+ * then holds each item's text block on the row's bottom edge, distributing the slack below a short
+ * item's ordinal, so the change to the page's copy can shift a title's line count without the
+ * paragraphs of a row drifting out of line. Where the items of a row are equal, the slack is zero
+ * and the gap above is exactly `space-32`.
+ */
+const ITEM = 'flex flex-col justify-between gap-16';
+
+/** The title over its line: `space-4` between them at the narrow width, `space-8` at the wide one. */
+const TEXT = 'flex flex-col gap-4 wide:gap-8';
+
+/** The title's rung, in the page's primary ink (AAP 0.2.2, rule B-3). */
+const TITLE = 'type-heading-5 text-ink-chocolate';
+
+/** The line's rung, in the palette's muted ink for the Cream ground (AAP 0.6.4, rule B-3). */
+const LINE = 'type-body-3 text-ink-coffee';
+---
+
+<section class={SECTION}>
+  <div class={LAYOUT}>
+    <div class={HEADING_CELL}>
+      <SectionHeading heading={heading} as="h2" />
+    </div>
+    <ul class={LIST}>
+      {
+        items.map((item) => (
+          <li class={ITEM}>
+            <div class={TEXT}>
+              <h3 class={TITLE}>{item.title}</h3>
+              <p class={LINE}>{item.line}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

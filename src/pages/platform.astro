@@ -8,11 +8,20 @@
  * copy, no component definition, no configuration read and no handler (rules W-1, B-2, W-2;
  * AAP 0.7.2, 0.10.2). It emits once, at build time.
  *
- * Two regions are the page's own, because the components inside them render no container. Their
- * padding is the design reference's, so the gaps it draws between its bands survive the components'
- * own spacing: 160 above and below the card grid at the wide width and 60 at the narrow one, then
- * the enquiry block's 80 and 160 (60 and 96 at the narrow width), which keeps the reference's
- * uniform 240 between sections at 1440 and its 120 at 390 (AAP 0.2.1, 0.8.4).
+ * One region is the page's own, and the stage block is not it. `StageCards` renders its own
+ * content column and its own rhythm, as every section component does: space-60 above and
+ * space-96 below at the narrow width, space-160 at each end from the theme's breakpoint, which is
+ * the rhythm AAP 0.2.1 records. The page therefore renders it unwrapped: a section of this page's
+ * around it would nest a second content column inside the first, cutting the 1344-pixel column
+ * PA-1 makes of the reference's 1340 down to 1248, and doubling the band's own space-160 top
+ * padding to 320 (AAP 0.8.4's content column).
+ *
+ * The enquiry band is the page's own region, because the heading and the button inside it render no
+ * container. Its space-80 above and space-160 below at the wide width, and space-60 and space-96 at
+ * the narrow one, leave 160 + 80 = 240 between the card grid and the enquiry heading at 1440 — the
+ * reference's uniform 240, unchanged — and 96 + 60 = 156 at 390, where the grid's own space-96 sets
+ * what this page used to add as a 60 of its own beside the component's 60: the boundary `/` draws
+ * below its own stage cards, rather than the reference's 120 (AAP 0.8.4's layout behaviour).
  *
  * What the reference draws and this page does not is a set of decisions. Its list section opens
  * with a centred eyebrow and heading made of template copy, and A2 supplies no such strings, so
@@ -34,12 +43,6 @@ import { global } from '../content/global.ts';
 import { platform } from '../content/platform.ts';
 
 /**
- * The board's band: the whole content column, padded as the reference pads the block holding its
- * card grid, which also sets the gap the enquiry block then completes (AAP 0.2.1).
- */
-const BOARD = 'content pt-60 pb-60 wide:pt-160 wide:pb-160';
-
-/**
  * The enquiry band: the heading, then the action one `space-40` below it at the narrow width and
  * `space-56` at the wide one, under the reference's own 80 and 160 padding.
  */
@@ -55,9 +58,7 @@ const ACTION = 'flex justify-end';
 <BaseLayout meta={platform.meta} nav={global.nav} footer={global.footer}>
   <Hero {...platform.hero} wordmarkText={global.wordmark} />
 
-  <section class={BOARD}>
-    <StageCards cards={platform.stages} size="large" />
-  </section>
+  <StageCards cards={platform.stages} size="large" />
 
   <section class={ENQUIRY}>
     <SectionHeading heading={platform.enquiry.heading} as="h2" />

@@ -1,0 +1,126 @@
+---
+/**
+ * `/` — the home page (AAP 0.4.2, 0.8.4).
+ *
+ * A route file composes a page and does nothing else (AAP 0.10.2): it imports the one layout, the
+ * page's content module and the region components, and maps the content onto their props. There is
+ * no markup of its own here, no component definition, no string, no style, no request handler and no
+ * configuration read — the layout owns `<html>`, `<head>`, the header, the one `<main>` and the
+ * footer, and every word on the page comes from `src/content` (rules W-1, B-4; AAP 0.4.3, 0.7.2).
+ *
+ * The nine regions below are the nine template sections the content map names, in the order AAP
+ * 0.8.4 gives them: the page top, "the gap", the four actions, the product-feature diagram, the
+ * sovereignty band, "what Grace means", the four stages, the pilot band and the questions. The two
+ * template sections with no entry in the content map — the Clients logo strip and the Blog — are
+ * absent rather than filled, and leave no placeholder, wrapper or gap where they stood (rule W-1).
+ *
+ * Each region resolves its own geometry, type rung and ink from `src/styles/theme.css` and its own
+ * responsive re-cut, so this file states nothing visual: there is no class, no size, no colour and no
+ * spacing to keep in step with the design reference, and the page reads the same at 1440 and at 390
+ * because the components do. Nothing here is a link, a control or a state; the two in-page anchors
+ * the page exposes are the "How it works" action and stage card 01, both of which the content layer
+ * points at the product route (rule B-4, WT-17).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import { home } from '../content/home.ts';
+import { global } from '../content/global.ts';
+
+import Hero from '../components/Hero.astro';
+import WorkGrid from '../components/WorkGrid.astro';
+import CategoryRows from '../components/CategoryRows.astro';
+import FeatureDiagram from '../components/FeatureDiagram.astro';
+import SovereigntyBand from '../components/SovereigntyBand.astro';
+import ValueItems from '../components/ValueItems.astro';
+import StageCards from '../components/StageCards.astro';
+import PilotBand from '../components/PilotBand.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+---
+
+<BaseLayout meta={home.meta} nav={global.nav} footer={global.footer}>
+  {/*
+    The page top: the company name above the headline, the bracketed label, the lead paragraph and
+    the hero panel. `wordmarkText` carries the name because `Wordmark` renders a string only from a
+    prop; the headline, and not the name, is the page's single `h1` (AAP 0.2.2, 0.8.1; rule B-3).
+  */}
+  <Hero
+    label={home.hero.label}
+    heading={home.hero.heading}
+    text={home.hero.text}
+    action={home.hero.action}
+    illustration={home.hero.illustration}
+    wordmark={home.hero.wordmark}
+    wordmarkText={global.wordmark}
+  />
+
+  {/*
+    The gap: the bracketed label, the heading and six text cards. The template draws a card image
+    here; that slot is closed, so the block is a grid of text cards with no card frame and no
+    carousel controls (AAP 0.2.4).
+  */}
+  <WorkGrid
+    label={home.gap.label}
+    heading={home.gap.heading}
+    text={home.gap.text}
+    caption={home.gap.caption}
+    items={home.gap.items}
+  />
+
+  {/*
+    The four actions, as ruled rows. No ordinal and no status label: this section presents the
+    product's four actions and makes no sovereignty claim, and the rows are not links, so they carry
+    no trailing affordance (AAP 0.2.3).
+  */}
+  <CategoryRows rows={home.actions.items} heading={home.actions.heading} />
+
+  {/*
+    The product-feature diagram: three columns of real, selectable text where the template stacks
+    three images, and the "How it works" action that leads to the product route (AAP 0.8.1, WT-17).
+  */}
+  <FeatureDiagram
+    columns={home.feature.columns}
+    heading={home.feature.heading}
+    action={home.feature.action}
+    alt={home.feature.alt}
+  />
+
+  {/*
+    The sovereignty band: one heading, one line of text, three items and the status label that
+    qualifies every claim in the band, on its own ground with the boundary panel where the template
+    puts a video (AAP 0.2.1, 0.7.5).
+  */}
+  <SovereigntyBand
+    heading={home.band.heading}
+    text={home.band.text}
+    items={home.band.items}
+    statusLabel={home.band.statusLabel}
+    action={home.band.action}
+  />
+
+  {/*
+    What Grace means: the heading beside the four value items. Their 01–04 ordinals are drawn by the
+    component's CSS counter from each item's position, so no numeral is stored in the content layer
+    (AAP 0.2.3, 0.6.6).
+  */}
+  <ValueItems heading={home.grace.heading} items={home.grace.items} />
+
+  {/*
+    The four stages at the default card size. Card 01 carries a target in the content layer, so it is
+    the page's second route into the product; cards 02–04 carry none and render as static blocks with
+    no link affordance (AAP 0.8.1, WT-17).
+  */}
+  <StageCards cards={home.stages} />
+
+  {/*
+    The pilot band, the shared block three pages show: its heading, its three steps and its action.
+    The Chocolate ground and the inverse button are the component's (AAP 0.6.3, 0.8.2).
+  */}
+  <PilotBand heading={home.pilot.heading} steps={home.pilot.steps} action={home.pilot.action} />
+
+  {/*
+    The six questions, from the one shared definition the contact page shows again. No heading and no
+    `openFirst`: the content layer gives this block no heading of its own, and every item starts
+    closed because no source opens one (AAP 0.8.4).
+  */}
+  <FaqAccordion items={home.faq} />
+</BaseLayout>

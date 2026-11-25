@@ -75,6 +75,20 @@ if (cards.length !== STAGE_COUNT) {
 const isBoard = size === 'large';
 
 /**
+ * The block's box on the page: the same content column every other section sits in — 1344 wide
+ * between 48-pixel insets at the design width and 358 between 16-pixel insets at 390 (AAP 0.8.4,
+ * PA-1) — and the visible rhythm the design gives this band, `space-60` above and `space-96` below
+ * at the narrow width and `space-160` at each end from the theme's breakpoint (AAP 0.2.1).
+ *
+ * The grid below is placed inside it rather than on it, so the tracks the grid divides are the
+ * column's widths and not the viewport's: without the column the row runs edge to edge, which both
+ * breaks the page's one inset system and puts the first card's caption on the viewport edge. The
+ * section is built here rather than by the page because the block owns its own geometry, as every
+ * other section component does, and a page that had to wrap it would be stating a layout.
+ */
+const SECTION = 'content pt-60 pb-96 wide:pt-160 wide:pb-160';
+
+/**
  * The grid: two across with a 16 gutter and a 32 row gap at the narrow width, four across with the
  * design's own 40 gutter and 56 row gap from the theme's breakpoint (AAP 0.8.4). Every value is a
  * spacing step of the theme, which is also what keeps the row heights equal without a height of
@@ -169,40 +183,42 @@ const LINE = 'type-body-3 mt-8 text-ink-taupe';
 const STATUS = 'mt-8';
 ---
 
-<ul class={LIST}>
-  {
-    cards.map((card, index) => {
-      const panel = STAGE_PANELS[index];
-      const href = card.href ?? '';
-      const isLinked = href !== '';
-      const CardHead = isLinked ? 'a' : 'div';
+<section class={SECTION}>
+  <ul class={LIST}>
+    {
+      cards.map((card, index) => {
+        const panel = STAGE_PANELS[index];
+        const href = card.href ?? '';
+        const isLinked = href !== '';
+        const CardHead = isLinked ? 'a' : 'div';
 
-      return (
-        <li class:list={[CARD, isBoard && index === 0 ? FEATURED : false]}>
-          <CardHead
-            class:list={[CARD_HEAD, isLinked ? 'group' : false]}
-            {...(isLinked ? { href } : {})}
-          >
-            <span class={MEDIA}>
-              <IllustrationPanel variant={panel} />
-              {isLinked && (
-                <span class={PLATE}>
-                  <Icon name="arrow-up-right" size="sm" />
-                </span>
-              )}
-            </span>
-            <span class={CAPTION}>
-              <span class={NAME}>{card.name}</span>
-              {' '}
-              <span class={NUMBER}>{card.number}</span>
-            </span>
-          </CardHead>
-          <p class={LINE}>{card.line}</p>
-          <div class={STATUS}>
-            <StatusLabel text={card.statusLabel} tone="default" />
-          </div>
-        </li>
-      );
-    })
-  }
-</ul>
+        return (
+          <li class:list={[CARD, isBoard && index === 0 ? FEATURED : false]}>
+            <CardHead
+              class:list={[CARD_HEAD, isLinked ? 'group' : false]}
+              {...(isLinked ? { href } : {})}
+            >
+              <span class={MEDIA}>
+                <IllustrationPanel variant={panel} />
+                {isLinked && (
+                  <span class={PLATE}>
+                    <Icon name="arrow-up-right" size="sm" />
+                  </span>
+                )}
+              </span>
+              <span class={CAPTION}>
+                <span class={NAME}>{card.name}</span>
+                {' '}
+                <span class={NUMBER}>{card.number}</span>
+              </span>
+            </CardHead>
+            <p class={LINE}>{card.line}</p>
+            <div class={STATUS}>
+              <StatusLabel text={card.statusLabel} tone="default" />
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>

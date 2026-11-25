@@ -1,0 +1,123 @@
+---
+/**
+ * `/contact` — the site's enquiry page and the only route whose shape depends on build-time
+ * configuration (AAP 0.4.2, 0.8.4 row 6, 0.9.3).
+ *
+ * It composes four regions in the design reference's order and nothing else: the page top, the
+ * enquiry form in one of its three states, the contact row, and the six shared questions. Every
+ * word comes from `src/content` — the page maps content fields onto component props and types no
+ * string of its own, so the copy layer stays the single source of user-visible text and no template
+ * text can reach the output (rules W-1, B-4; AAP 0.4.3, 0.7.2).
+ *
+ * It is also the one place where configuration becomes behaviour. `src/lib/env.ts` is the only
+ * reader of the build-time values (rule B-2), and this page asks it for the two that decide what
+ * `/contact` shows: the enquiry endpoint and the contact address. From those it derives exactly one
+ * of the three states AAP 0.9.3 defines, and `ContactForm.astro` refuses any combination the state
+ * cannot honestly render — so the page cannot ship a form that has nowhere to post, a mailto link
+ * with no address, or a "contact details to follow" notice over a working endpoint.
+ *
+ * The page is pure server-rendered markup. It opens no request handler, stores nothing, adds no
+ * script of its own (the form and the accordion own the site's only islands), links no foreign host
+ * and carries no `style` attribute, so the content security policy the build emits admits every page
+ * it emits (rules B-1, W-2; AAP 0.4.5). The map block the reference draws between the form and the
+ * contact row is removed rather than filled: rule W-1 forbids its raster, its place names and its
+ * headings, and A6 gives the contact area no heading or line of its own to put in their place
+ * (AAP 0.2.1, 0.11.1).
+ *
+ * Three of the four regions arrive whole and are mapped, not rebuilt. `contact.hero` mirrors the
+ * page-top component's props member for member, so it spreads straight through; the company name is
+ * handed in separately from A0's one definition of it, so a page top that shows the wordmark can
+ * never render an empty one. The form receives `contact.form` and the derived state and takes no
+ * part in validation, submission or the fifteen-second abort — those live in the component and its
+ * logic module (AAP 0.4.4, 0.8.1). The questions receive `contact.faq` and no heading: the content
+ * module carries six questions and no heading for them, and A6 states no open item for ours, so the
+ * block renders in its resting state rather than with a title or an expansion this file invented
+ * (AAP 0.8.4). The contact row is the one region composed here: the configured address as a mailto
+ * link, and nothing at all when no address is set.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import ContactForm from '../components/ContactForm.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+import Hero from '../components/Hero.astro';
+
+import { contact } from '../content/contact.ts';
+import { global } from '../content/global.ts';
+import { getContactEmail, getFormEndpoint } from '../lib/env.ts';
+
+/**
+ * The two configured values, resolved once for the whole page. Both are `null` when unset, which is
+ * the documented default of every build-time value and the state the default configuration ships.
+ */
+const endpoint = getFormEndpoint();
+const contactEmail = getContactEmail();
+
+/**
+ * Which of the three states `/contact` renders (AAP 0.9.3): a configured endpoint makes the form,
+ * a contact address without one makes the mailto link, and neither makes the fallback notice. The
+ * annotation is the union `ContactForm`'s `state` prop declares, so the component and this page
+ * cannot drift apart; no fourth state, default value or fallback address is invented.
+ */
+const state: 'form' | 'mailto' | 'fallback' =
+  endpoint !== null ? 'form' : contactEmail !== null ? 'mailto' : 'fallback';
+
+/**
+ * The contact row's geometry. The reference sets this band — the one that carries its map — inside
+ * the page's content column with its own vertical insets at each width, and the site states that
+ * rhythm once per section as `space-60` at the narrow width and `space-80` from the theme's 900 px
+ * breakpoint, the same pair the form and the questions beside it use, so the joints between the
+ * page's regions stay even (AAP 0.2.1, 0.8.4; PA-1, PA-5).
+ */
+const CONTACT_ROW = 'content py-60 wide:py-80';
+
+/**
+ * The row itself. The reference lays its three contact items out space-between on one line at the
+ * design width and stacks them centred at the narrow one; our row carries the single configured
+ * address, so the same declaration reproduces both behaviours: a single item sits at the row's start
+ * where the reference ends its row, and centres where the reference stacks and centres its items.
+ */
+const CONTACT_LINE = 'flex items-center justify-center wide:justify-between';
+
+/**
+ * The address itself, in the mono label rung the reference sets its contact lines on — Geist Mono
+ * 500, 12 px at the narrow width and 16 px at the wide one (AAP 0.2.2) — in the primary ink, which
+ * reads at 17.08:1 on the Cream ground (AAP 0.2.2, rule B-3).
+ *
+ * It is underlined because it is the page's only link to the address and a link must be
+ * identifiable without relying on colour (rule B-3). No upper case is applied, although the
+ * reference types its contact lines in capitals: that is literal text in the template, while a
+ * configured address is rendered as configured, so the reader can copy it verbatim.
+ *
+ * `break-all` lets an unusually long address wrap inside the column instead of widening the page
+ * (AAP 0.17.2), and `min-h-24` gives the standalone control the 24 by 24 target WCAG 2.2 requires;
+ * the theme sets that minimum for the controls it names, and a bare anchor outside a list or a
+ * navigation is not one of them (AAP 0.6.4, rule B-3).
+ */
+const ADDRESS_LINK =
+  'type-button-1 text-ink-chocolate underline inline-flex min-h-24 items-center break-all text-center wide:text-start';
+---
+
+<BaseLayout meta={contact.meta} nav={global.nav} footer={global.footer}>
+  <Hero {...contact.hero} wordmarkText={global.wordmark} />
+
+  <ContactForm
+    copy={contact.form}
+    state={state}
+    endpoint={endpoint}
+    contactEmail={contactEmail}
+  />
+
+  {
+    contactEmail !== null && (
+      <section class={CONTACT_ROW}>
+        <div class={CONTACT_LINE}>
+          <a href={`mailto:${contactEmail}`} class={ADDRESS_LINK}>
+            {contactEmail}
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  <FaqAccordion items={contact.faq} />
+</BaseLayout>

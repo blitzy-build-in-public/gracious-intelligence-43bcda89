@@ -1,0 +1,89 @@
+---
+/**
+ * The `/legal` route: A7's legal page, rendered from the copy `src/content/legal.ts` owns
+ * (AAP 0.4.2, 0.8.4 rows 7-8, 0.12.1).
+ *
+ * It composes a top block and the document body, in that order, and holds no string of its own:
+ * every word on the page arrives from the content layer as an expression, so the page cannot
+ * invent, shorten or re-case the owner's copy (rules W-1, B-4; AAP 0.4.3, 0.7.2). The page top is
+ * `Hero`, which renders the block's only `h1`; the body is the owner's text set as plain copy. The
+ * shell around both — head, skip link, header, `<main>`, footer — belongs to `BaseLayout`, so this
+ * file adds no second navigation landmark, no footer and no metadata of its own.
+ *
+ * **Why the top block carries a wordmark, and why nothing else sits beside it.** The design
+ * reference has no legal frame of its own (AAP 0.2.1: the frameless routes reuse the
+ * About-page Top block), and that block's largest member is the company name set as display type,
+ * right-aligned, above its own paragraph (node 2260:2009, row B). `Hero`'s `wordmark` reproduces
+ * exactly that slot at the fit-sized rung `Wordmark.astro` measures, and `illustration="top"`
+ * fills the block's media slot with the authored page-top panel, which is the one panel AAP 0.2.4
+ * assigns to the page tops of the frameless routes. No Figma artwork comes with it: the template's
+ * mark, its photograph and its parenthesis vectors stay out of the output (rule W-1).
+ *
+ * Nothing else is passed to the block. A7 supplies no eyebrow, no lead line and no status label, so
+ * none is rendered, and a legal page makes no product claim for a status label to qualify (AAP
+ * 0.7.5). It carries no call to action either: the page has no destination to offer, and a control
+ * that leads nowhere is the dead control rule B-4 forbids.
+ *
+ * **Why no section heading sits between the block and the body.** `SectionHeading` renders a
+ * heading string, and the A7 copy this page consumes carries exactly one, which `Hero` already
+ * renders as the page's `h1`. A second heading could only repeat that string as an `h2` or invent
+ * one, and both breach the copy discipline this site is built on (rule B-4, AAP 0.7.6): the block
+ * below the top is the owner's document text, and the specification gives it no heading of its own.
+ *
+ * Nothing here is configured, fetched or interactive: the page reads no environment value
+ * (`src/lib/env.ts` is the only module that does), adds no script, no island, no image element and
+ * no link to another host, and is emitted once at build with no handler behind it (rules B-1, B-2,
+ * W-2). The launch guard's marker reaches the browser through the content module and is never
+ * retyped here, which is what keeps an unfilled field a property of the copy rather than of the page.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import Hero from '../components/Hero.astro';
+
+import { global } from '../content/global.ts';
+import { legal } from '../content/legal.ts';
+
+/**
+ * The body region's separation from the top block: the page's own content column, `space-60` above
+ * and below at the narrow width and `space-96` at the wide one, which is the rhythm the site gives
+ * a plain statement region (AAP 0.8.4). The wide step comes from the theme's `--breakpoint-wide`
+ * token through Tailwind's `wide:` variant, so the 900 breakpoint has one source and this region
+ * moves with it (PA-5). `.content` carries both insets and the centred column, so the 358 inside 16
+ * of the 390 artboard and the 1344 inside 48 of the 1440 one have one definition (PA-1).
+ */
+const LAYOUT = 'content py-60 wide:py-96';
+
+/**
+ * The document text: the body-3 rung — Urbanist 400 at leading 1.5, 16 at the wide width and 10 at
+ * the narrow one — in the page's primary ink, Chocolate on Cream at 17.08:1 (AAP 0.2.2, 0.6.3, rule
+ * B-3). It is the rung the manifest assigns to body copy, and the one the reference binds to its own
+ * copy paragraph inside the About-page Top block (Body 3, 16 justified at its 316-pixel measure), so
+ * the page's document text is set on the same style as the block above it. The ink is set here
+ * rather than inherited, so the body's contrast never depends on the ground a composer gives it.
+ *
+ * The measure is constrained in proportion to the type size, the pair `Hero` uses for its own lead
+ * paragraph: three quarters of the column at the narrow width and half of it at the wide one. A
+ * document set across the full 1344-pixel column would run past a hundred characters a line, and
+ * the reference constrains its own copy paragraph to a narrow measure for that reason; at this rung
+ * the pair sets about 53 characters a line at 390 and about 84 at 1440. The text is left ragged
+ * rather than justified: the reference justifies only inside its narrow measure, and justification
+ * across a column this wide opens gaps between words that the narrow setting never has.
+ *
+ * The region declares no height, no clamp and no overflow, so copy that grows with the reader's
+ * zoom or font size simply takes more lines, and nothing here is focusable — the body adds no tab
+ * stop to the page's keyboard path (rule B-3).
+ */
+const BODY = 'type-body-3 text-ink-chocolate max-w-3/4 wide:max-w-1/2';
+---
+
+<BaseLayout meta={legal.meta} nav={global.nav} footer={global.footer}>
+  <Hero
+    heading={legal.heading}
+    illustration="top"
+    wordmark={true}
+    wordmarkText={global.wordmark}
+  />
+  <section class={LAYOUT}>
+    <p class={BODY}>{legal.body}</p>
+  </section>
+</BaseLayout>

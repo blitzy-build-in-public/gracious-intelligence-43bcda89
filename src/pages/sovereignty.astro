@@ -1,0 +1,97 @@
+---
+/**
+ * `/sovereignty` — A4's page, and the one page WT-14 measures: exactly ten sovereignty controls,
+ * each carrying its status label, plus the limits statement (AAP 0.4.2, 0.8.4, 0.12.1, 0.13.1).
+ *
+ * Five regions, in the order AAP 0.8.4 fixes for this route: the page top with the page's own
+ * status label, the ten controls as hairline rows, the ten questions as disclosure items, the
+ * limits statement as plain text, and the shared pilot band. Each region is one component, and this
+ * file is their composition and nothing else — the page top renders the page's single `h1` (rule
+ * B-3), and every heading below it belongs to the section that owns it.
+ *
+ * Every string arrives from `sovereignty` (A4) or `global` (A0) as a prop or an expression, so the
+ * file holds no user-visible literal and no literal `alt`, `title`, `aria-label` or `placeholder`
+ * (rules W-1, B-4; AAP 0.4.3, 0.7.2). That is also why neither optional block heading is passed:
+ * A4's copy is absent from this build, so the content module carries no heading for either block
+ * and one written here would be invented copy (AAP 0.7.6, 0.7.7). Both parameters are optional, and
+ * a block without one renders no heading and leaves no gap where it would have stood.
+ *
+ * The design reference has no frame for `/sovereignty`: it is a page the site composes rather than
+ * one the template draws (AAP 0.2.1, 0.8.4). The regions it is assembled from do have frames — the
+ * About-page top block, the category rows, the disclosure set and the promotional band — and each
+ * component reproduces its own region's geometry, so no spacing, size, colour or radius is stated
+ * here: no stylesheet block, no `style` attribute and no colour literal (AAP 0.6.6).
+ *
+ * The page is static: the frontmatter maps copy onto props once, at build, and emits no script, no
+ * island, no request handler and no configured value (rules W-2, B-1, B-2). The only interactivity
+ * anywhere in it is the disclosure component's own glyph swap, and the ten answers read in full
+ * without it.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import CategoryRows from '../components/CategoryRows.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+import Hero from '../components/Hero.astro';
+import LimitsStatement from '../components/LimitsStatement.astro';
+import PilotBand from '../components/PilotBand.astro';
+
+import { global } from '../content/global.ts';
+import { sovereignty } from '../content/sovereignty.ts';
+---
+
+<BaseLayout meta={sovereignty.meta} nav={global.nav} footer={global.footer}>
+  {/*
+    A4's top block. `statusLabel` is the page's own claim qualifier — the longer sovereignty label
+    A4 attaches to `/sovereignty` alone (AAP 0.7.5) — and reaches the component as the content
+    module's value rather than as a string written here. `illustration` is the project's own `top`
+    panel, the one every inner route carries (AAP 0.2.4), and `wordmark` opens the block with the
+    company name: the component renders that name only from `wordmarkText`, so the A0 wordmark is
+    handed in with it (AAP 0.7.2). No `forceNoindex`: that member belongs to the 404 route alone,
+    and this page's indexability is decided by the live flag inside the shared head (AAP 0.4.2).
+  */}
+  <Hero
+    label={sovereignty.hero.label}
+    heading={sovereignty.hero.heading}
+    text={sovereignty.hero.text}
+    action={sovereignty.hero.action}
+    illustration={sovereignty.hero.illustration}
+    statusLabel={sovereignty.hero.statusLabel}
+    wordmark={sovereignty.hero.wordmark}
+    wordmarkText={global.wordmark}
+  />
+
+  {/*
+    The ten controls, in A4's order. Each row carries both its ordinal and the A0 `Design intent`
+    label, which is what WT-14 counts and why the rows are this one component rather than a list
+    built here (AAP 0.4.3, 0.8.2). The rows are not links, so the block renders no affordance and
+    no hover state, and every row shows its default presentation (AAP 0.2.3, rule B-4).
+  */}
+  <CategoryRows rows={sovereignty.controls} />
+
+  {/*
+    The ten questions. These are this page's own ten from A4, not the site's shared six, and every
+    item opens from the content module's own pair of strings (AAP 0.8.2). No `openFirst`: the
+    reference opens a different item of a four-item list, and A4's layout is unknown in this build,
+    so the default — every item closed until the reader opens it — is the one state that asserts
+    nothing the copy does not say (AAP 0.7.6).
+  */}
+  <FaqAccordion items={sovereignty.faq} />
+
+  {/*
+    A4's limits statement, set as plain text between the questions and the pilot band. It is stated
+    as body copy in the page's own ink rather than as an alarm: the critical ink and an alert role
+    belong to the enquiry form's messages and to nowhere else (AAP 0.6.4, rule B-4).
+  */}
+  <LimitsStatement text={sovereignty.limits} />
+
+  {/*
+    The shared pilot band, from the one definition the home page, the Site Intelligence page and
+    this page import (AAP A-4, 0.6.2). Its members are passed individually rather than as a spread,
+    so this file names each one the band renders and the component keeps its own declared interface.
+  */}
+  <PilotBand
+    heading={sovereignty.pilot.heading}
+    steps={sovereignty.pilot.steps}
+    action={sovereignty.pilot.action}
+  />
+</BaseLayout>

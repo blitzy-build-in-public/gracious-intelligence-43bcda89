@@ -1,0 +1,100 @@
+---
+/**
+ * `/privacy` — the privacy page's route (AAP 0.4.2, 0.8.4).
+ *
+ * Three regions and nothing else, in this order: the page top, then the body the owner supplies.
+ * The design reference has no frame for this page — it is one of the three frameless routes that
+ * use the base layout with the About page's top block — so the top block follows that block's
+ * composition and nothing below it imitates a template section (rule W-1, AAP 0.2.1, 0.8.4).
+ *
+ * Copy discipline. Every word on the page arrives as an expression over a content module:
+ * `privacy.meta` for the document metadata, `privacy.heading` for the page's single `h1`,
+ * `privacy.body` for the text beneath it, and `global.wordmark` for the company name the top block
+ * opens with. No string is typed here, and neither is an `alt`, `title`, `aria-label` or
+ * `placeholder` value, so the content layer stays the one source of user-visible text (rules W-1,
+ * B-4; AAP 0.4.3, 0.7.2). While A7's text is outstanding, `privacy.ts` holds the project's
+ * placeholder marker, which `scripts/launch-check.ts` refuses to let a live build publish (AAP
+ * 0.9.5, WT-10); supplying the owner's copy means editing that module and leaves this page as it
+ * stands.
+ *
+ * Nothing is invented to fill the page. There is no effective date, no company number, no
+ * registered address, no jurisdiction and no contact clause — each would be a claim the
+ * specification does not make, which is what rule B-4 and AAP 0.7.6 forbid. The route is complete
+ * and the one field still open is the owner's own.
+ *
+ * The document head, the skip link, the header, the `<main>` landmark and the footer belong to the
+ * base layout, so this file owns only what renders inside the slot. It reads no configuration,
+ * opens no request handler, ships no script, holds no image element and reaches no host but this
+ * one (rules B-1, B-2, W-2).
+ */
+import { global } from '../content/global.ts';
+import { privacy } from '../content/privacy.ts';
+
+import Hero from '../components/Hero.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/**
+ * The body region's geometry: the page's content column, then the band rhythm the site's sections
+ * share — `space-60` above and below at the narrow width and `space-80` at the wide one, which is
+ * the vertical padding the reference gives this page's bands and the bottom of its page top at
+ * each width (AAP 0.8.4). The inset and the column width come from `.content`, so the 1440 and 390
+ * artboards have one source (PA-1), and the wide step reads the theme's breakpoint token through
+ * Tailwind's `wide:` variant, so the 900 step moves as one line (PA-5).
+ */
+const BODY_LAYOUT = 'content pt-60 pb-60 wide:pt-80 wide:pb-80';
+
+/**
+ * The body copy: the design's prose step, `type-body-3` — Urbanist 400 at leading 1.5, 16 at the
+ * wide width and 10 at the narrow one — justified, which is the alignment the reference declares on
+ * its own prose style rather than a choice made here, and set in the page's primary ink so its
+ * 17.08:1 contrast on the Cream ground never depends on the block a composer places it in (AAP
+ * 0.2.2, 0.6.3; rule B-3).
+ *
+ * The measure is what makes the justification read. The reference constrains prose to a narrow
+ * column at the wide width and lets it fill the column at the narrow one, so the paragraph holds
+ * the whole column below the breakpoint and a third of it above. That third is 448 wide against the
+ * 16-pixel prose step — twenty-eight times the type size, and about fifty-six characters a line,
+ * which sits between the sixteen to twenty times the reference's own prose columns measure and the
+ * length a justified setting stays comfortable at. The half-column the page top's lead paragraph
+ * takes would run to roughly eighty-four characters here, because the body step is half the lead's
+ * size.
+ */
+const BODY = 'type-body-3 text-ink-chocolate text-justify wide:max-w-1/3';
+---
+
+<BaseLayout meta={privacy.meta} nav={global.nav} footer={global.footer}>
+  {/*
+    The page top, in the About page's composition: the company name opens the block, the
+    bracket-framed frame holds the authored `top` panel, and the page's single `h1` is A7's
+    heading (AAP 0.2.1, 0.2.4, 0.8.4; rule B-3).
+
+    The wordmark is passed here because the reference draws a right-aligned display wordmark in
+    this slot at both of its widths, and `Wordmark` renders a string only from its `text` prop, so
+    the words have to be handed in from the content layer rather than typed (AAP 0.7.2). A7 gives
+    this page no eyebrow, no lead paragraph, no status label and no action, so the block opens on
+    the wordmark, the heading and the panel and carries none of those members — and none is
+    invented in their place (rule B-4).
+  */}
+  <Hero
+    heading={privacy.heading}
+    illustration="top"
+    wordmark={true}
+    wordmarkText={global.wordmark}
+  />
+
+  {/*
+    The body region: one block whose only content is the owner's copy, taken whole from the content
+    layer and rendered as ordinary text rather than markup, so no sanitising step is needed and no
+    case, truncation or sentence split alters what the specification will say.
+
+    No heading stands above it and none may be added. The content module carries exactly one
+    heading, which the page top has already rendered as the page's `h1`; a second heading here
+    would either repeat that string or introduce one the specification does not supply, and
+    inventing copy is what rule B-4 forbids. That is why this route renders no `SectionHeading`:
+    the component has nothing of A7's to show until a distinct section heading exists in the
+    content module.
+  */}
+  <section class={BODY_LAYOUT}>
+    <p class={BODY}>{privacy.body}</p>
+  </section>
+</BaseLayout>

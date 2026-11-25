@@ -6,6 +6,13 @@
  * page of its own, so only the first card carries `href` and the other three are
  * never presented as controls that lead nowhere.
  */
+
+// Card 01's status label is the product status label, which the shell copy defines once. It is
+// imported here rather than restated, because the same words qualify every place the product is
+// presented as an offering (AAP 0.7.2, 0.7.5): a copy edit in `global.ts` must not leave one of
+// those places saying something else.
+import { global } from '../global.ts';
+
 export interface StageCard {
   /** The ordinal the card shows, exactly as the content specification writes it. */
   number: string;
@@ -34,7 +41,7 @@ export const stages: StageCard[] = [
     number: 'TO BE PROVIDED',
     name: 'TO BE PROVIDED',
     line: 'TO BE PROVIDED',
-    statusLabel: 'Proposed product, in discovery',
+    statusLabel: global.status.product,
     href: '/platform/site-intelligence',
   },
   {

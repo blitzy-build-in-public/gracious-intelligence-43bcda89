@@ -5,7 +5,17 @@
 // at build time, which keeps the A0 copy object in `global.ts` out of any bundle that needs only
 // the shape.
 
-import type { Item } from '../global.ts';
+import type { Item } from "../global.ts";
+
+/**
+ * The list type of A1's four actions, declared in this file so the module exports its object typed
+ * by an interface of its own (AAP 0.8.2, 0.7.2). The `Item` primitive stays defined once in
+ * `global.ts`, because every title-and-line pair on the site shares it (AAP 0.4.3).
+ *
+ * The type is structurally an `Item[]`, so both page modules that import the array and
+ * `CategoryRows`' `RowItem[]` prop consume it unchanged (AAP 0.4.3, 0.6.2).
+ */
+export interface ActionList extends Array<Item> {}
 
 /**
  * The four actions: the one definition of the row section the home page shows and the Site
@@ -28,9 +38,9 @@ import type { Item } from '../global.ts';
  * in A1's order, so the row rhythm and the copy-fidelity comparison hold once the copy replaces it
  * here and nowhere else.
  */
-export const actions: Item[] = [
-  { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-  { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-  { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-  { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+export const actions: ActionList = [
+  { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+  { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+  { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+  { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
 ];

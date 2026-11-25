@@ -11,7 +11,7 @@
 // imported here rather than restated, because the same words qualify every place the product is
 // presented as an offering (AAP 0.7.2, 0.7.5): a copy edit in `global.ts` must not leave one of
 // those places saying something else.
-import { global } from '../global.ts';
+import { global } from "../global.ts";
 
 export interface StageCard {
   /** The ordinal the card shows, exactly as the content specification writes it. */
@@ -43,28 +43,28 @@ export interface StageCard {
  */
 export const stages: StageCard[] = [
   {
-    number: 'TO BE PROVIDED',
-    name: 'TO BE PROVIDED',
-    line: 'TO BE PROVIDED',
+    number: "TO BE PROVIDED",
+    name: "TO BE PROVIDED",
+    line: "TO BE PROVIDED",
     statusLabel: global.status.product,
-    href: '/platform/site-intelligence',
+    href: "/platform/site-intelligence",
   },
   {
-    number: 'TO BE PROVIDED',
-    name: 'TO BE PROVIDED',
-    line: 'TO BE PROVIDED',
-    statusLabel: 'Design-partner stage, not started',
+    number: "TO BE PROVIDED",
+    name: "TO BE PROVIDED",
+    line: "TO BE PROVIDED",
+    statusLabel: "Design-partner stage, not started",
   },
   {
-    number: 'TO BE PROVIDED',
-    name: 'TO BE PROVIDED',
-    line: 'TO BE PROVIDED',
-    statusLabel: 'Bounded research',
+    number: "TO BE PROVIDED",
+    name: "TO BE PROVIDED",
+    line: "TO BE PROVIDED",
+    statusLabel: "Bounded research",
   },
   {
-    number: 'TO BE PROVIDED',
-    name: 'TO BE PROVIDED',
-    line: 'TO BE PROVIDED',
-    statusLabel: 'Proposed. Transfer is not yet demonstrated',
+    number: "TO BE PROVIDED",
+    name: "TO BE PROVIDED",
+    line: "TO BE PROVIDED",
+    statusLabel: "Proposed. Transfer is not yet demonstrated",
   },
 ];

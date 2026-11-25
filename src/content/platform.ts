@@ -19,9 +19,9 @@
  * inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
  * any published build.
  */
-import type { HeroCopy, Link, PageMeta } from './global.ts';
-import { stages } from './shared/stages.ts';
-import type { StageCard } from './shared/stages.ts';
+import type { HeroCopy, Link, PageMeta } from "./global.ts";
+import { stages } from "./shared/stages.ts";
+import type { StageCard } from "./shared/stages.ts";
 
 /**
  * Everything `/platform` renders, in the order the page composes it (AAP 0.8.4).
@@ -64,17 +64,17 @@ export interface PlatformCopy {
  */
 export const platform: PlatformCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    illustration: 'top',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    illustration: "top",
   },
   stages,
   enquiry: {
-    heading: 'TO BE PROVIDED',
-    action: { label: 'TO BE PROVIDED', href: '/contact' },
+    heading: "TO BE PROVIDED",
+    action: { label: "TO BE PROVIDED", href: "/contact" },
   },
 };

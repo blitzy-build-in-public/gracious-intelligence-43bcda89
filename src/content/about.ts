@@ -14,7 +14,7 @@ import type {
   Link,
   PageMeta,
   PanelVariant,
-} from './global.ts';
+} from "./global.ts";
 
 /** A5's Story block: one heading and the single Text it supplies, rendered whole. */
 export interface StoryCopy {
@@ -59,8 +59,6 @@ export interface AboutCopy {
   story: StoryCopy;
   /** The Vision and Mission pair, in that order, each with its own panel. */
   values: {
-    /** The pair's own heading, if A5 supplies one above the two cards. */
-    heading?: string;
     /** Two items: the mono card title and the card's body, Vision first. */
     items: Item[];
     /** The two decorative panels, index-aligned with `items` (AAP 0.2.4). */
@@ -96,9 +94,13 @@ export interface AboutCopy {
  * The content specification holding A5 was not available to this build, so every string it
  * owns carries the launch guard's placeholder marker instead of invented, borrowed or guessed
  * text (AAP 0.7.7): `scripts/launch-check.ts` refuses to let a live build publish the marker,
- * which keeps the gap visible to the owner instead of shipping it. Three values carry no
- * marker, because the AAP fixes them or gives them a defined default: the two conditional
- * switches below, and the source line's organisation (AAP 0.7.6).
+ * which keeps the gap visible to the owner instead of shipping it. Six values carry no marker,
+ * because the AAP fixes them or gives them a defined default: the top block's `top` panel, its
+ * wordmark switch and the Vision/Mission panel names (AAP 0.2.4, 0.8.1); the two conditional
+ * switches below (AAP 0.7.4); and the Why now source line's organisation, the one permitted
+ * mention of another organisation (AAP 0.7.6). The pilot call's action takes its label from A5,
+ * but its target carries no marker either: `href` is a same-site route (`/contact`), not copy
+ * (Rules B-1, B-4; AAP 0.8.4).
  *
  * Rule B-3 requires the pilot call's action to name its purpose, and its label is the marker
  * while A5's copy is absent, so the link does not yet say what it does; the departure stands
@@ -107,40 +109,40 @@ export interface AboutCopy {
  */
 export const about: AboutCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    illustration: 'top',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    illustration: "top",
     wordmark: true,
   },
   story: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
   },
   values: {
     items: [
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
     ],
-    media: ['vision', 'mission'],
+    media: ["vision", "mission"],
   },
   sourceConfirmed: false,
   whyNow: {
-    heading: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
     figures: [
-      { value: 'TO BE PROVIDED', label: 'TO BE PROVIDED' },
-      { value: 'TO BE PROVIDED', label: 'TO BE PROVIDED' },
-      { value: 'TO BE PROVIDED', label: 'TO BE PROVIDED' },
+      { value: "TO BE PROVIDED", label: "TO BE PROVIDED" },
+      { value: "TO BE PROVIDED", label: "TO BE PROVIDED" },
+      { value: "TO BE PROVIDED", label: "TO BE PROVIDED" },
     ],
-    source: 'McKinsey & Company',
+    source: "McKinsey & Company",
   },
-  founderBio: '',
+  founderBio: "",
   pilotCall: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    action: { label: 'TO BE PROVIDED', href: '/contact' },
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    action: { label: "TO BE PROVIDED", href: "/contact" },
   },
 };

@@ -65,15 +65,15 @@ export type Line = string;
  * `src/illustrations/panels/` (AAP 0.2.4, 0.8.1).
  */
 export type PanelVariant =
-  | 'top'
-  | 'hero'
-  | 'boundary'
-  | 'stage-01'
-  | 'stage-02'
-  | 'stage-03'
-  | 'stage-04'
-  | 'vision'
-  | 'mission';
+  | "top"
+  | "hero"
+  | "boundary"
+  | "stage-01"
+  | "stage-02"
+  | "stage-03"
+  | "stage-04"
+  | "vision"
+  | "mission";
 
 /**
  * A page top's copy. The members mirror `Hero.astro`'s props member for member, so a page maps
@@ -132,29 +132,29 @@ export interface GlobalCopy {
  * state out of any published build.
  */
 export const global: GlobalCopy = {
-  wordmark: 'Gracious Intelligence',
+  wordmark: "Gracious Intelligence",
   nav: [
-    { label: 'TO BE PROVIDED', href: '/' },
-    { label: 'TO BE PROVIDED', href: '/platform' },
-    { label: 'TO BE PROVIDED', href: '/sovereignty' },
-    { label: 'TO BE PROVIDED', href: '/about' },
-    { label: 'TO BE PROVIDED', href: '/contact' },
+    { label: "TO BE PROVIDED", href: "/" },
+    { label: "TO BE PROVIDED", href: "/platform" },
+    { label: "TO BE PROVIDED", href: "/sovereignty" },
+    { label: "TO BE PROVIDED", href: "/about" },
+    { label: "TO BE PROVIDED", href: "/contact" },
   ],
-  headerAction: { label: 'Request a pilot', href: '/contact' },
+  headerAction: { label: "Request a pilot", href: "/contact" },
   status: {
-    product: 'Proposed product, in discovery',
-    sovereignty: 'Design intent',
+    product: "Proposed product, in discovery",
+    sovereignty: "Design intent",
   },
   footer: {
-    line: 'TO BE PROVIDED',
+    line: "TO BE PROVIDED",
     links: [
-      { label: 'TO BE PROVIDED', href: '/privacy' },
-      { label: 'TO BE PROVIDED', href: '/legal' },
+      { label: "TO BE PROVIDED", href: "/privacy" },
+      { label: "TO BE PROVIDED", href: "/legal" },
     ],
-    notice: 'TO BE PROVIDED',
+    notice: "TO BE PROVIDED",
   },
   socialImage: {
-    title: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
   },
 };

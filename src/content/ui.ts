@@ -31,7 +31,7 @@ export interface UiCopy {
  * replaces it here; no component changes when it does.
  */
 export const ui: UiCopy = {
-  skipLink: 'TO BE PROVIDED',
-  menuOpen: 'TO BE PROVIDED',
-  menuClose: 'TO BE PROVIDED',
+  skipLink: "TO BE PROVIDED",
+  menuOpen: "TO BE PROVIDED",
+  menuClose: "TO BE PROVIDED",
 };

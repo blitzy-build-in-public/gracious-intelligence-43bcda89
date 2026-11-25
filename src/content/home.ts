@@ -8,43 +8,45 @@
 // through it (Rules B-1, B-2), and it is erasable-only TypeScript so Node loads it directly through
 // type stripping wherever a build-time script needs it (AAP 0.10.1).
 //
-// A1 was not available to this build: `tests/fixtures/website-content-specification.md` holds an
-// absent-document notice, not the specification's sections A0–A8. Nothing here is therefore
+// A1 was not available to this build: the committed specification fixture holds an absent-document
+// notice, not the specification's sections A0–A8. Nothing here is therefore
 // invented, borrowed from the template or reconstructed from the plan's quotations (Rules W-1,
 // B-4); every string A1 owns carries the project's placeholder marker instead, exactly as the
 // sibling modules do (AAP 0.7.7), and `scripts/launch-check.ts` refuses to let a live build publish
-// that marker (AAP 0.9.5, WT-10). Three kinds of value carry no marker because the plan itself
+// that marker (AAP 0.9.5, WT-10). Four kinds of value carry no marker because the plan itself
 // fixes them: the panel and wordmark switches, the status labels `global.ts` defines once
-// (AAP 0.7.5), and the two internal route targets — a path is structure, not copy (Rule B-1).
+// (AAP 0.7.5), the product-feature block's "How it works" action label, which the plan states and
+// which the reachability check walks from `/` to reach the product page (WT-17), and the two
+// internal route targets — a path is structure, not copy (Rule B-1).
 
-import { global } from './global.ts';
-import type { HeroCopy, Item, Line, Link, PageMeta } from './global.ts';
-import { actions } from './shared/actions.ts';
-import { stages } from './shared/stages.ts';
-import type { StageCard } from './shared/stages.ts';
-import { pilot } from './shared/pilot.ts';
-import type { PilotBandCopy } from './shared/pilot.ts';
-import { faq } from './shared/faq.ts';
-import type { FaqItem } from './shared/faq.ts';
+import { global } from "./global.ts";
+import type { HeroCopy, Item, Line, Link, PageMeta } from "./global.ts";
+import { actions } from "./shared/actions.ts";
+import { stages } from "./shared/stages.ts";
+import type { StageCard } from "./shared/stages.ts";
+import { pilot } from "./shared/pilot.ts";
+import type { PilotBandCopy } from "./shared/pilot.ts";
+import { faq } from "./shared/faq.ts";
+import type { FaqItem } from "./shared/faq.ts";
 
 /**
  * One column of the product-feature diagram (AAP 0.4.3, 0.8.1).
  *
  * A column carries exactly one of `items` and `lines`: the outer columns pair a title with a line,
- * while the centre column carries single strings plus the diagram's one caption. The two members
- * are both optional on this interface so a consumer can read either without narrowing, and the
- * exclusivity is a property of the definition below rather than of the type.
+ * while the centre column carries single strings plus the diagram's one caption. The union below
+ * makes that a property of the type rather than of the three column literals in the object, so a
+ * column carrying both, or neither, fails to compile. Both branches declare both members — the
+ * unused one as `?: never` — so a consumer still reads `column.items` and `column.lines` without
+ * narrowing first.
+ *
+ * - `title`: the column's heading. The right-hand column's is A1's four-actions heading.
+ * - `items`: title-and-line pairs, for the outer columns.
+ * - `lines`: one string per line, for the centre column.
+ * - `caption`: the diagram's single caption, carried by the centre column.
  */
-export interface DiagramColumn {
-  /** The column's heading. The right-hand column's is A1's four-actions heading. */
-  title: string;
-  /** Title-and-line pairs, for the outer columns. Never set together with `lines`. */
-  items?: Item[];
-  /** One string per line, for the centre column. Never set together with `items`. */
-  lines?: Line[];
-  /** The diagram's single caption, carried by the centre column. */
-  caption?: string;
-}
+export type DiagramColumn =
+  | { title: string; items: Item[]; lines?: never; caption?: string }
+  | { title: string; lines: Line[]; items?: never; caption?: string };
 
 /**
  * The product-feature block that occupies the template's three-image stack on `/` (AAP 0.8.1).
@@ -104,7 +106,13 @@ export interface HomeCopy {
    * intro paragraph or a caption; neither can be established while the document is missing, and an
    * optional field with no source is left out rather than placeheld.
    */
-  gap: { label?: string; heading: string; text?: string; caption?: string; items: Item[] };
+  gap: {
+    label?: string;
+    heading: string;
+    text?: string;
+    caption?: string;
+    items: Item[];
+  };
   /**
    * The four actions, as one heading and the shared array.
    *
@@ -137,7 +145,7 @@ export interface HomeCopy {
  * actions (AAP 0.8.2). One string, two places, so a copy edit cannot leave the diagram describing
  * the rows differently from the rows themselves.
  */
-const fourActionsHeading = 'TO BE PROVIDED';
+const fourActionsHeading = "TO BE PROVIDED";
 
 /**
  * A1's home-page copy.
@@ -151,30 +159,30 @@ const fourActionsHeading = 'TO BE PROVIDED';
  */
 export const home: HomeCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    label: 'TO BE PROVIDED',
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    label: "TO BE PROVIDED",
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
     // The full-bleed band and the small slot beside the mono label both take the hero panel, which
     // scales to either size without a second file (AAP 0.2.4). A panel name, never a path (WT-08).
-    illustration: 'hero',
+    illustration: "hero",
     // The wordmark above the headline is the fit-sized one, and the headline alone is the `h1`
     // (AAP 0.2.2, 0.8.1).
     wordmark: true,
   },
   gap: {
-    label: 'TO BE PROVIDED',
-    heading: 'TO BE PROVIDED',
+    label: "TO BE PROVIDED",
+    heading: "TO BE PROVIDED",
     items: [
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
     ],
   },
   actions: {
@@ -184,27 +192,27 @@ export const home: HomeCopy = {
     items: actions,
   },
   feature: {
-    heading: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
     columns: [
       {
-        title: 'TO BE PROVIDED',
+        title: "TO BE PROVIDED",
         items: [
-          { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-          { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-          { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-          { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+          { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+          { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+          { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+          { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
         ],
       },
       {
-        title: 'TO BE PROVIDED',
+        title: "TO BE PROVIDED",
         lines: [
-          'TO BE PROVIDED',
-          'TO BE PROVIDED',
-          'TO BE PROVIDED',
-          'TO BE PROVIDED',
-          'TO BE PROVIDED',
+          "TO BE PROVIDED",
+          "TO BE PROVIDED",
+          "TO BE PROVIDED",
+          "TO BE PROVIDED",
+          "TO BE PROVIDED",
         ],
-        caption: 'TO BE PROVIDED',
+        caption: "TO BE PROVIDED",
       },
       {
         title: fourActionsHeading,
@@ -213,17 +221,17 @@ export const home: HomeCopy = {
     ],
     // A1's "How it works" link is fixed by the plan, and it is the route the reachability check
     // walks from `/` to reach the product page (AAP 0.8.1, WT-17).
-    action: { label: 'How it works', href: '/platform/site-intelligence' },
-    alt: 'TO BE PROVIDED',
+    action: { label: "How it works", href: "/platform/site-intelligence" },
+    alt: "TO BE PROVIDED",
   },
   stages: stages,
   band: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
     items: [
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
     ],
     // Imported rather than restated: the shell copy owns the design-intent label, and the ten
     // control rows on `/sovereignty` show the same words, so the two can never disagree
@@ -235,15 +243,15 @@ export const home: HomeCopy = {
     // A1's copy is absent, so the link does not yet say what it does; the departure stands because
     // inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
     // any published build.
-    action: { label: 'TO BE PROVIDED', href: '/sovereignty' },
+    action: { label: "TO BE PROVIDED", href: "/sovereignty" },
   },
   grace: {
-    heading: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
     items: [
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
     ],
   },
   // The pilot band's heading, its three steps and its button label live in `shared/pilot.ts`, the

@@ -12,11 +12,11 @@
 // time. Nothing here is a construct that type stripping cannot erase, so Node loads the module
 // directly when a build-time check reads it (AAP 0.12.2).
 
-import type { HeroCopy, PageMeta, RowItem } from './global.ts';
-import { global } from './global.ts';
-import { pilot } from './shared/pilot.ts';
-import type { PilotBandCopy } from './shared/pilot.ts';
-import type { FaqItem } from './shared/faq.ts';
+import type { HeroCopy, PageMeta, RowItem } from "./global.ts";
+import { global } from "./global.ts";
+import { pilot } from "./shared/pilot.ts";
+import type { PilotBandCopy } from "./shared/pilot.ts";
+import type { FaqItem } from "./shared/faq.ts";
 
 /**
  * Every string `/sovereignty` renders, in the order the page composes it (AAP 0.8.4).
@@ -44,14 +44,17 @@ export interface SovereigntyCopy {
   /**
    * The ten sovereignty controls, in A4's order, as ten `RowItem`s.
    *
-   * One row type serves both row sections of the site (AAP 0.4.3): these rows carry a status label
-   * and the four actions on the home page carry none. Each row's label is the A0 `Design intent`
-   * string, imported rather than restated, so an edit in `global.ts` reaches every place the claim
-   * is qualified and no copy of it can drift (AAP 0.7.2, 0.7.5).
+   * One row type serves both row sections of the site (AAP 0.4.3, 0.8.2): these ten rows carry
+   * both a `number` and a `statusLabel`, while the four actions on the home page carry neither.
+   * Each row's status label is the A0 `Design intent` string, imported from `global.ts` rather
+   * than restated, so an edit there reaches every place the claim is qualified and no copy of it
+   * can drift (AAP 0.7.2, 0.7.5).
    *
-   * No `number` is set: A4's ordinals are not available to this build and this layer carries no
-   * ordinal-typed string, so the row's numbering stays the component's concern (AAP 0.6.6). The
-   * field is optional on `RowItem`, so adding A4's ordinals later needs no interface change.
+   * The `number` values are A4's ordinals, which are absent from this build, so each holds the
+   * project's placeholder marker: no ordinal was invented in their place (AAP 0.7.7), and
+   * `scripts/launch-check.ts` refuses to publish the marker (AAP 0.9.5, WT-10). A4's own ordinal
+   * replaces the marker when the specification arrives and needs no interface change, because
+   * `number` is optional on `RowItem` (AAP 0.4.3).
    */
   controls: RowItem[];
   /**
@@ -88,89 +91,100 @@ export interface SovereigntyCopy {
  * honestly, and cannot be published until A4's text arrives. Replacing a marker with real copy
  * needs no change to any component.
  *
- * Four values carry no marker, because the plan itself fixes them and none is copy A4 owns: the
+ * Five values carry no marker, because the plan itself fixes them and none is copy A4 owns: the
  * top status label (AAP 0.7.5), the ten row status labels (the A0 label in `global.ts`), the `top`
- * panel (AAP 0.2.4) and the pilot band (imported). The counts are fixed too — ten controls, ten
- * questions — so the page's structure survives the copy edit: exactly one marker is replaced per
- * field, and WT-14 keeps asserting ten controls, each with its status label, plus the limits
- * statement.
+ * panel (AAP 0.2.4), the wordmark switch the page-top hero sets (AAP 0.2.2, 0.8.1) and the pilot
+ * band (imported). The counts are fixed too — ten controls, ten questions — so the page's structure
+ * survives the copy edit: exactly one marker is replaced per field, and WT-14 keeps asserting ten
+ * controls, each with its status label, plus the limits statement, so the added numbers change
+ * nothing it measures.
  */
 export const sovereignty: SovereigntyCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    illustration: 'top',
-    statusLabel: 'Design intent, checked at each deployment',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    illustration: "top",
+    statusLabel: "Design intent, checked at each deployment",
     wordmark: true,
   },
   controls: [
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
     {
-      title: 'TO BE PROVIDED',
-      line: 'TO BE PROVIDED',
+      number: "TO BE PROVIDED",
+      title: "TO BE PROVIDED",
+      line: "TO BE PROVIDED",
       statusLabel: global.status.sovereignty,
     },
   ],
   faq: [
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
-    { question: 'TO BE PROVIDED', answer: 'TO BE PROVIDED' },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
+    { question: "TO BE PROVIDED", answer: "TO BE PROVIDED" },
   ],
-  limits: 'TO BE PROVIDED',
+  limits: "TO BE PROVIDED",
   pilot,
 };

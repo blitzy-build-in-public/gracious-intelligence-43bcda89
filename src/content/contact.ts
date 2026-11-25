@@ -8,9 +8,9 @@
 // flag reach the form as props resolved by `src/lib/env.ts`, never as content, so this module
 // stays a leaf that names no host and holds no configured value (Rule B-2, AAP 0.7.2).
 
-import type { HeroCopy, Link, PageMeta } from './global.ts';
-import type { FaqItem } from './shared/faq.ts';
-import { faq } from './shared/faq.ts';
+import type { HeroCopy, Link, PageMeta } from "./global.ts";
+import type { FaqItem } from "./shared/faq.ts";
+import { faq } from "./shared/faq.ts";
 
 /**
  * A field's empty-or-invalid message, keyed exactly as `src/lib/form.ts` reports the error.
@@ -45,7 +45,7 @@ export interface FormMessages {
  * themselves are not copy and appear nowhere in this module (AAP 0.7.3).
  */
 export interface FormCopy {
-  /** The six visible labels, in the order the form renders its fields. */
+  /** The six field labels, one visible above each field, in the order the form renders them. */
   labels: {
     /** Above the name input. */
     name: string;
@@ -53,16 +53,16 @@ export interface FormCopy {
     email: string;
     /** Above the company input. */
     company: string;
+    /** Above the role input. */
+    role: string;
     /** Above the manufacturing-sites input. */
     sites: string;
     /** Above the message textarea. */
     message: string;
-    /** The consent checkbox's own accessible name, which sits beside the checkbox itself. */
-    consent: string;
   };
   /** A supplementary required marker; every required field also carries `required` and `aria-required`. */
   requiredMarker: string;
-  /** The consent statement that sits beside the checkbox; `labels.consent` is the checkbox's own name. */
+  /** The consent statement beside the checkbox, used as the checkbox's own visible label. */
   consentLabel: string;
   /** The privacy page linked from inside the consent statement: same-site, `/privacy`. */
   privacyLink: Link;
@@ -124,40 +124,40 @@ export interface ContactCopy {
  */
 export const contact: ContactCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    illustration: 'top',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    illustration: "top",
   },
   form: {
     labels: {
-      name: 'TO BE PROVIDED',
-      email: 'TO BE PROVIDED',
-      company: 'TO BE PROVIDED',
-      sites: 'TO BE PROVIDED',
-      message: 'TO BE PROVIDED',
-      consent: 'TO BE PROVIDED',
+      name: "TO BE PROVIDED",
+      email: "TO BE PROVIDED",
+      company: "TO BE PROVIDED",
+      role: "TO BE PROVIDED",
+      sites: "TO BE PROVIDED",
+      message: "TO BE PROVIDED",
     },
-    requiredMarker: 'TO BE PROVIDED',
-    consentLabel: 'TO BE PROVIDED',
-    privacyLink: { label: 'TO BE PROVIDED', href: '/privacy' },
-    submitLabel: 'TO BE PROVIDED',
-    sendingLabel: 'Sending',
-    confirmationHeading: 'TO BE PROVIDED',
-    confirmationText: 'TO BE PROVIDED',
-    errorText: 'TO BE PROVIDED',
-    mailtoLabel: 'Email us',
-    fallbackText: 'Contact details to follow',
+    requiredMarker: "TO BE PROVIDED",
+    consentLabel: "TO BE PROVIDED",
+    privacyLink: { label: "TO BE PROVIDED", href: "/privacy" },
+    submitLabel: "TO BE PROVIDED",
+    sendingLabel: "Sending",
+    confirmationHeading: "TO BE PROVIDED",
+    confirmationText: "TO BE PROVIDED",
+    errorText: "TO BE PROVIDED",
+    mailtoLabel: "Email us",
+    fallbackText: "Contact details to follow",
     messages: {
-      nameEmpty: 'TO BE PROVIDED',
-      emailEmpty: 'TO BE PROVIDED',
-      emailInvalid: 'TO BE PROVIDED',
-      companyEmpty: 'TO BE PROVIDED',
-      sitesInvalid: 'TO BE PROVIDED',
-      consentMissing: 'TO BE PROVIDED',
+      nameEmpty: "TO BE PROVIDED",
+      emailEmpty: "TO BE PROVIDED",
+      emailInvalid: "TO BE PROVIDED",
+      companyEmpty: "TO BE PROVIDED",
+      sitesInvalid: "TO BE PROVIDED",
+      consentMissing: "TO BE PROVIDED",
     },
   },
   faq,

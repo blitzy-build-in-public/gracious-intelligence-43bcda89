@@ -6,7 +6,7 @@
 // component, configured value or test fixture can reach this page's copy through it (Rules B-1,
 // B-2). It is also erasable-only TypeScript, so Node can load it directly through type stripping.
 
-import type { PageMeta } from './global.ts';
+import type { PageMeta } from "./global.ts";
 
 /**
  * The copy `/privacy` renders: the document metadata a search engine or link preview reads, the
@@ -46,9 +46,9 @@ export interface PrivacyCopy {
  */
 export const privacy: PrivacyCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
-  heading: 'TO BE PROVIDED',
-  body: 'TO BE PROVIDED',
+  heading: "TO BE PROVIDED",
+  body: "TO BE PROVIDED",
 };

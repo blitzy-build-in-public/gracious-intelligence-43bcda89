@@ -22,13 +22,14 @@
 // demonstration caption every screen frame carries, and the three screen keys — are set exactly,
 // because none of them is a string the specification owns.
 
-import { global } from './global.ts';
-import type { HeroCopy, Item, Line, PageMeta } from './global.ts';
-import { actions } from './shared/actions.ts';
-import { pilot } from './shared/pilot.ts';
-import type { PilotBandCopy } from './shared/pilot.ts';
-import { stages } from './shared/stages.ts';
-import type { StageCard } from './shared/stages.ts';
+import type { ScreenKey } from "../lib/screens.ts";
+import { global } from "./global.ts";
+import type { HeroCopy, Item, Line, PageMeta } from "./global.ts";
+import { actions } from "./shared/actions.ts";
+import { pilot } from "./shared/pilot.ts";
+import type { PilotBandCopy } from "./shared/pilot.ts";
+import { stages } from "./shared/stages.ts";
+import type { StageCard } from "./shared/stages.ts";
 
 /**
  * The identity of one of the owner's three product screens, in the order the page presents them.
@@ -37,8 +38,14 @@ import type { StageCard } from './shared/stages.ts';
  * the question of whether the file exists at all stay in `src/lib/screens.ts`, the module that owns
  * them. Copy therefore never references a raster (WT-08) and never has to change when a screenshot
  * arrives.
+ *
+ * The three keys are declared once, in `src/lib/screens.ts`, the module that owns the published
+ * filenames and the presence probe. This name binds the copy layer's frame key to that union, so the
+ * keys that index the presence record cannot drift from the keys the frames carry when a screen is
+ * added. The import is type-only, so it adds nothing to the build output and gives the copy layer no
+ * runtime dependency on that module.
  */
-export type ScreenFrameKey = 'investigate' | 'compare' | 'audit';
+export type ScreenFrameKey = ScreenKey;
 
 /**
  * One product-screen frame.
@@ -151,6 +158,16 @@ export interface SiteIntelligenceCopy {
 }
 
 /**
+ * The caption every product-screen frame carries, fixed by the action plan rather than by the
+ * specification: every product-screen slot is captioned as a demonstration screen with simulated
+ * data, so no reader mistakes a mock for the platform the site does not yet claim to have
+ * (AAP 0.1.3, 0.2.4, Rule B-4). A3's own screen names, if it supplies any, join this one string when
+ * the specification arrives. It is written once because all three frames carry it, so a copy edit
+ * cannot change one frame and leave the other two saying something else.
+ */
+const demonstrationCaption = "Demonstration screen with simulated data";
+
+/**
  * A3's copy for `/platform/site-intelligence`, as the page maps it onto `Hero`, `WorkGrid`,
  * `CategoryRows`, `ProseBlock`, `ScreenFrames`, `PilotBand` and `StageCards` props.
  *
@@ -160,61 +177,61 @@ export interface SiteIntelligenceCopy {
  */
 export const siteIntelligence: SiteIntelligenceCopy = {
   meta: {
-    title: 'TO BE PROVIDED',
-    description: 'TO BE PROVIDED',
+    title: "TO BE PROVIDED",
+    description: "TO BE PROVIDED",
   },
   hero: {
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    illustration: 'top',
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    illustration: "top",
     statusLabel: global.status.product,
   },
   systems: {
-    label: 'TO BE PROVIDED',
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    label: "TO BE PROVIDED",
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
     items: [
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
-      { title: 'TO BE PROVIDED', line: 'TO BE PROVIDED' },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
+      { title: "TO BE PROVIDED", line: "TO BE PROVIDED" },
     ],
   },
   model: {
-    label: 'TO BE PROVIDED',
-    heading: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
-    caption: 'TO BE PROVIDED',
+    label: "TO BE PROVIDED",
+    heading: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
+    caption: "TO BE PROVIDED",
     lines: [
-      'TO BE PROVIDED',
-      'TO BE PROVIDED',
-      'TO BE PROVIDED',
-      'TO BE PROVIDED',
-      'TO BE PROVIDED',
+      "TO BE PROVIDED",
+      "TO BE PROVIDED",
+      "TO BE PROVIDED",
+      "TO BE PROVIDED",
+      "TO BE PROVIDED",
     ],
   },
   actions,
   detail: {
-    label: 'TO BE PROVIDED',
-    text: 'TO BE PROVIDED',
+    label: "TO BE PROVIDED",
+    text: "TO BE PROVIDED",
   },
   screens: {
-    heading: 'TO BE PROVIDED',
+    heading: "TO BE PROVIDED",
     frames: [
       {
-        key: 'investigate',
-        caption: 'Demonstration screen with simulated data',
-        alt: 'TO BE PROVIDED',
+        key: "investigate",
+        caption: demonstrationCaption,
+        alt: "TO BE PROVIDED",
       },
       {
-        key: 'compare',
-        caption: 'Demonstration screen with simulated data',
-        alt: 'TO BE PROVIDED',
+        key: "compare",
+        caption: demonstrationCaption,
+        alt: "TO BE PROVIDED",
       },
       {
-        key: 'audit',
-        caption: 'Demonstration screen with simulated data',
-        alt: 'TO BE PROVIDED',
+        key: "audit",
+        caption: demonstrationCaption,
+        alt: "TO BE PROVIDED",
       },
     ],
   },

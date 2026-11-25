@@ -9,7 +9,7 @@
  * directly wherever a build-time script needs the band's copy.
  */
 
-import type { Item, Link } from '../global.ts';
+import type { Item, Link } from "../global.ts";
 
 /**
  * The pilot band's copy.
@@ -48,11 +48,11 @@ export interface PilotBandCopy {
  * any published build.
  */
 export const pilot: PilotBandCopy = {
-  heading: 'TO BE PROVIDED',
+  heading: "TO BE PROVIDED",
   steps: [
-    { title: 'Day 1', line: 'TO BE PROVIDED' },
-    { title: 'Day 20', line: 'TO BE PROVIDED' },
-    { title: 'Day 90', line: 'TO BE PROVIDED' },
+    { title: "Day 1", line: "TO BE PROVIDED" },
+    { title: "Day 20", line: "TO BE PROVIDED" },
+    { title: "Day 90", line: "TO BE PROVIDED" },
   ],
-  action: { label: 'TO BE PROVIDED', href: '/contact' },
+  action: { label: "TO BE PROVIDED", href: "/contact" },
 };

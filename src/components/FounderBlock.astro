@@ -1,0 +1,73 @@
+---
+/**
+ * The founder block on `/about`, rendered only once the owner supplies a biography (AAP 0.7.4,
+ * 0.8.1).
+ *
+ * The content specification gives this block one string and no structure: no heading, no name
+ * line, no role, no portrait and no credential. The design reference carries no founder or
+ * biography block at either width (AAP 0.2.1), so no template shape is imitated, nothing is left
+ * unfilled and no slot is missing. Every element beyond the paragraph — a heading, a byline, a
+ * caption, a portrait frame — would therefore be copy or chrome the plan does not contain, and an
+ * invented name or title would be an invented person (rule B-4). That is why the block is one
+ * `<section>` holding one `<p>`: a later reader must not "complete" it.
+ *
+ * `about.founderBio` defaults to the empty string (AAP 0.7.4), and the early return below emits
+ * nothing at all in that case — no section, no empty paragraph, no placeholder and no gap in the
+ * page rhythm. Emptiness is judged on the trimmed value, so a value of white space counts as
+ * absent, while the paragraph itself renders the prop exactly as the content layer holds it: the
+ * copy is never re-shaped, re-cased or re-paragraphed here.
+ *
+ * The string arrives as a prop and the component holds no copy of its own (rule W-1). Nothing is
+ * imported, no content module is read, no configuration value is named (rule B-2) and nothing is
+ * fetched (rule B-1). It is not an island: no script, no framework import and no hydration
+ * directive, so the paragraph is evaluated at build time and `/about` reads with scripts disabled
+ * (rule W-2).
+ *
+ * Presentation is the system's, not the block's. `.content` is the page's content column and
+ * `.type-body-2` is the body-2 rung — Urbanist 400, 24 at the wide width and 14 at the narrow one,
+ * leading 1.5 — so both the measure and the type step with the theme's own 900 breakpoint
+ * (AAP 0.2.2, 0.6.6). The vertical rhythm is two spacing tokens of that same scale. Chocolate on
+ * Cream measures 17.08:1 and is set here rather than inherited, so the paragraph's contrast never
+ * depends on the ground a composer happens to give it (rule B-3). No rule, fill, radius, shadow or
+ * card frame is drawn: the design system declares no elevation, and a block of one paragraph needs
+ * none of them.
+ *
+ * Nothing here is interactive — no link, no control, no tab stop — so the block adds nothing to the
+ * keyboard path through the page, and it holds no raster, no icon and no remote asset (rules B-1,
+ * B-3).
+ */
+
+interface Props {
+  /**
+   * The founder's biography, exactly as A5 supplies it — `about.founderBio`, which stays the empty
+   * string until the owner provides the text (AAP 0.7.4, 0.16.2). A value that is empty after
+   * trimming renders no markup at all.
+   */
+  bio: string;
+}
+
+const { bio } = Astro.props;
+
+/*
+ * Absent copy is not an empty block: the section is skipped whole rather than rendered hollow, so
+ * the page never carries a headingless gap where the biography would have been.
+ */
+if (bio.trim() === '') {
+  return;
+}
+
+/**
+ * The section's geometry: the content column, then the block rhythm the design gives a section
+ * between its neighbours — `space-60` at the narrow width and `space-80` from the theme's 900
+ * breakpoint. That breakpoint is restated in rem for the reason `Button.astro` restates it: the
+ * theme publishes no breakpoint token, and a class attribute may hold no pixel literal.
+ */
+const LAYOUT = 'content py-60 min-[56.25rem]:py-80';
+
+/** The paragraph's rung and ink: body-2 in Chocolate on the Cream page ground. */
+const TEXT = 'type-body-2 text-ink-chocolate';
+---
+
+<section class={LAYOUT}>
+  <p class={TEXT}>{bio}</p>
+</section>

@@ -1,0 +1,212 @@
+---
+/**
+ * The site header: the brand, the global navigation and the one call to action, rendered once per
+ * page by the base layout (AAP 0.8.1, FR-3, rule B-3).
+ *
+ * Every string arrives as a prop — the brand words from `wordmark`, the five navigation links from
+ * `nav`, the call to action from `cta`, the menu's two names from `labels` — so this file holds no
+ * copy of its own, borrows nothing from the design file and invents nothing (rules W-1, B-4; AAP
+ * 0.4.3, 0.7.2). The design reference's own header carries a drawn brand mark, a centred monospaced
+ * location caption and no navigation inside the bar at all; A0 names none of those, so the mark
+ * becomes the name in type, the caption is not reproduced, and the navigation the template sets in
+ * a vertical column beside its hero is the global navigation this header owns (AAP 0.2.1, 0.2.4,
+ * rule W-1).
+ *
+ * Two states from one markup set. From the theme's `--breakpoint-wide` step the row shows the
+ * brand, the five links and the call to action; below it the row shows the brand and the menu
+ * trigger, and the navigation lives inside `MobileMenu`. Each side of the step is genuinely out of
+ * the layout with `display: none` — the `hidden` utility unaided below the step and `wide:flex`
+ * above it — so exactly one navigation landmark and one set of five links is ever in the
+ * accessibility tree, and no page offers the same destination twice (rule B-3, AAP 0.8.4).
+ *
+ * It adds no script of its own: `MobileMenu` is the one navigation island this file composes, and
+ * every other part of the header is server-rendered markup that reads whole with JavaScript
+ * disabled (rule W-2). Nothing is fetched, no font or image is requested and no host but this one
+ * is reachable from here (rule B-1).
+ */
+import Button from './Button.astro';
+import MobileMenu from './MobileMenu.astro';
+import Wordmark from './Wordmark.astro';
+
+import type { Link } from '../content/global.ts';
+
+interface Props {
+  /**
+   * The five global navigation links, the same definition the footer renders, so the header and the
+   * footer can never drift apart (A-4, AAP 0.4.3). Each `label` is the link's visible text and each
+   * `href` is a same-site route — never a host (rule B-1).
+   */
+  nav: Link[];
+  /**
+   * The header's one call to action, `global.headerAction`. It points at a real route and performs
+   * its function, which is what rule B-4 asks of every control on the site.
+   */
+  cta: Link;
+  /**
+   * The current route's path. A link whose `href` equals it is the page being read, so it carries
+   * both the underline treatment and `aria-current="page"` and the state never rests on decoration
+   * alone (AAP 0.6.4, rule B-3). A page cannot mark two of them: one path is current at a time.
+   */
+  current: string;
+  /** A8's two menu names, passed straight to `MobileMenu`, which owns the trigger they name. */
+  labels: { open: string; close: string };
+  /**
+   * The brand words, exactly as A0 writes them, passed through to `Wordmark`. An extension to the
+   * interface AAP 0.8.1 records for this component, on the same footing as `Footer.astro`'s: the
+   * wordmark renders its words from a prop and a component may render copy only from a prop, so the
+   * caller supplies `global.wordmark` rather than this file importing the content module (AAP 0.4.3,
+   * 0.7.2).
+   */
+  wordmark: string;
+}
+
+const { nav, cta, current, labels, wordmark } = Astro.props;
+
+/**
+ * The header's box: the page's own content column (`--container-content` inside `--spacing-16`
+ * at the narrow width and `--spacing-48` at the wide one, centred however much wider the viewport
+ * gets), then `space-20` above and below the row.
+ *
+ * The 48 is the plan's snap of the frame's 50, a 2-pixel departure that puts the inset on the
+ * spacing grid the whole scale is built on (AAP 0.6.3, PA-1). There is no fill, border, radius or
+ * shadow: the design reference draws none on this row at either width — its ink floats directly on
+ * the page ground — and the page's own ground shows through this box unchanged (rule B-1, AAP
+ * 0.2.2).
+ */
+const HEADER = 'content py-20';
+
+/**
+ * The row itself: brand at the inline start, the navigation and its action at the inline end.
+ *
+ * `justify-between` is what separates the two ends and the frame's own distribution, so no column
+ * gap is declared: the two groups share the 1344-pixel column with about ten pixels to spare at the
+ * width this header is designed for, and a column gap would spend that slack on nothing.
+ *
+ * `flex-wrap` and the row gap are a safety valve rather than a drawn behaviour. A five-link
+ * navigation beside a twenty-one-character brand in mono upper case is wide, and a longer label set
+ * than the one standing in for A0's copy today would otherwise push the row past the content column
+ * and give the page a horizontal scrollbar; wrapping keeps the page inside its viewport at every
+ * width in the required range, and the row gap is the distance the frame sets between two rows of
+ * its own block. Neither does anything at either design width (AAP 0.8.4, rule B-3).
+ */
+const ROW = 'flex flex-wrap items-center justify-between gap-y-24';
+
+/**
+ * The brand slot. The design reference gives it a fixed 32-pixel square at the wide width and 24 at
+ * the narrow one — a drawn mark, which rule W-1 keeps out of the output, so the brand is the name in
+ * type here.
+ *
+ * BLITZY [TYPOGRAPHY]: the name steps down to `text-heading-3` for this slot. `Wordmark` sizes
+ * itself at `text-display-2` — 96 px at the wide width — which is the rung the page top and the
+ * footer need for a 21-character name and which no row can share with five navigation links and a
+ * button: the name alone would take 877 of the column's 1344 pixels and the row would overflow the
+ * viewport. AAP 0.2.2's step-down rule settles it — a slot whose copy is longer than the template's
+ * and does not fit steps down the scale's own rungs and never to a size between them — and
+ * `text-heading-3` is the first rung, from either width's order, whose single line keeps the row
+ * inside the column, below the height the button sets, and within 8 pixels of the mark's own height
+ * in the frame. The step is taken by re-pointing the one custom property the rung reads on this
+ * slot's wrapper, which is how the theme itself moves a token at a breakpoint rather than by
+ * declaring a second value for it: no new size is introduced and every value still resolves to a
+ * declared token. The alternative — the template's mark — cannot be reproduced at all, because its
+ * artwork is the design file's own (rule W-1).
+ *
+ * `self-start` holds the brand at the top of the row, which is where the frame puts its mark and its
+ * action alike. It also keeps the brand still when the narrow width's menu panel opens: that panel
+ * belongs to `MobileMenu` and grows the row it sits in, so a centred brand would slide down the row
+ * as the reader opened the menu and back up as they closed it.
+ */
+const BRAND = 'shrink-0 self-start [--text-display-2:var(--text-heading-3)]';
+
+/**
+ * The wide width's navigation and action, as one group at the row's inline end. It is out of the
+ * layout entirely below the theme's 900-pixel step — `display: none`, not a tucked-away or
+ * visually-hidden box — so a reader at the narrow width meets `MobileMenu`'s five links and this
+ * copy of them is absent from the accessibility tree, from the tab order and from the reading order
+ * alike (rule B-3, AAP 0.8.4).
+ *
+ * `space-20` separates the five links: that is the gap the design reference sets between its own
+ * navigation items, and the same value `MobileMenu` stacks the same list at. `space-24` separates
+ * the list from the button, which the reference leaves as free space in a `space-between` row of
+ * three items. The action is the primary `Button`, which carries the reference's own plate geometry:
+ * `radius-control`, `space-16` above and below, `space-24` at each end and the button-1 label rung
+ * (AAP 0.2.3, 0.6.3). At 1440 the list and the button together come to about ten pixels under the
+ * content column, which is why the group takes no wider gutters than these.
+ */
+const MENU = 'hidden items-center gap-24 wide:flex';
+
+/** `flex-wrap` for the same reason the row has it: a long label set wraps instead of overflowing. */
+const NAV_LIST = 'flex flex-wrap items-center gap-20';
+
+/**
+ * The navigation landmark is out of the layout below the step in its own right, not only through the
+ * group around it, so the landmark a reader's assistive technology announces is the menu's and no
+ * second one exists to be announced even if that group's rule were ever changed (rule B-3).
+ */
+const NAV = 'hidden wide:block';
+
+/**
+ * One link face for the whole navigation: the button-1 rung — Geist Mono 500 at its narrow and wide
+ * steps — with the upper case supplied in CSS, so the DOM text stays exactly as the content layer
+ * writes it (AAP 0.6.6). Chocolate on Cream measures 17.08:1 (rule B-3). The base layer already holds
+ * every navigation link to the 24-by-24 minimum target, so no padding is needed to reach it.
+ *
+ * No hover colour, underline or motion is drawn for a non-current item, because the design reference
+ * draws none — its only state geometry in this area is the active item's underline, which the theme's
+ * `.nav-current` supplies (AAP 0.15.2, rule B-3).
+ */
+const LINK = 'type-button-1 mono-uppercase text-ink-chocolate';
+
+/** The keyboard indicator is the theme's own `:focus-visible` ring, which the base layer defines once. */
+const CURRENT = `${LINK} nav-current`;
+
+/** The button keeps its own width rather than stretching across the group it sits in. */
+const ACTION = 'shrink-0';
+---
+
+<header class={HEADER}>
+  <div class={ROW}>
+    <div class={BRAND}>
+      <Wordmark place="hero" text={wordmark} />
+    </div>
+
+    <div class={MENU}>
+      {/*
+        The site's navigation landmark above the breakpoint, and the only one in the accessibility
+        tree there: `MobileMenu`'s own landmark is `display: none` at this width. Its links are list
+        items so each keeps a full target box, and the current page is marked by the underline and by
+        `aria-current` together.
+      */}
+      <nav class={NAV}>
+        <ul class={NAV_LIST}>
+          {
+            nav.map((item) => {
+              const isCurrent = item.href === current;
+
+              return (
+                <li>
+                  <a
+                    class={isCurrent ? CURRENT : LINK}
+                    href={item.href}
+                    aria-current={isCurrent ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+      <div class={ACTION}>
+        <Button label={cta.label} href={cta.href} tone="default" />
+      </div>
+    </div>
+
+    {/*
+      The narrow width's navigation: the trigger and the five links, collapsed behind it by the
+      island's own script and fully readable without it. It is the only navigation in the
+      accessibility tree below the breakpoint.
+    */}
+    <MobileMenu nav={nav} labels={labels} current={current} />
+  </div>
+</header>

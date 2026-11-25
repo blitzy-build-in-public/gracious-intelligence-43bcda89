@@ -1,7 +1,7 @@
 ---
 /**
- * The four stage cards, and the one rule that decides what a card is: a card with an `href` is a
- * link, and a card without one is a static block (AAP 0.2.1, 0.2.3, 0.8.1).
+ * The stage cards, and the one rule that decides what a card is: a card with an `href` is a link,
+ * and a card without one is a static block (AAP 0.2.1, 0.2.3, 0.8.1).
  *
  * Only the first stage has a page of its own, so the content layer gives `href` to card 01 alone.
  * The affordance the design reference draws for a linked card — a circular plate carrying an
@@ -31,8 +31,9 @@ import StatusLabel from './StatusLabel.astro';
 
 interface Props {
   /**
-   * The four stage cards, in the order the content specification sets them out. Exactly four: the
-   * panels are mapped to card position, so the set and the illustrations have to agree.
+   * The stage cards to render, in the order the content specification sets them out: the whole
+   * sequence on the home page and on the platform board, and cards 02–04 alone on the Site
+   * Intelligence page, which presents card 01 as the page it links to.
    */
   cards: StageCard[];
   /**
@@ -45,22 +46,25 @@ interface Props {
 const { cards, size = 'default' } = Astro.props;
 
 /**
- * The panel each card carries, by position (AAP 0.2.4). Position rather than `card.number`: the
- * number is copy, and a page that ever renumbers its cards must not silently take another card's
- * illustration with it.
+ * The four authored panels, in the order the stages run (AAP 0.2.4).
+ *
+ * A card's own `panel` is what it renders, so a page that presents a subset of the stages keeps each
+ * card's own artwork; this list is the fallback for a card that does not name one. It is read by
+ * position and never by `card.number`, because the number is copy, and a page that renumbers its
+ * cards must not take another card's illustration with it.
  */
 const STAGE_PANELS = ['stage-01', 'stage-02', 'stage-03', 'stage-04'] as const;
 
 const STAGE_COUNT = STAGE_PANELS.length;
 
 /**
- * A set of any other size cannot be rendered: a shorter set would leave panels unused and a longer
- * one would leave a card without its own, so the build stops here and names the component instead
- * of emitting a page with a hole in it.
+ * A set outside the stage sequence cannot be rendered: an empty set is a section with no cards, and
+ * a set longer than the four stages would leave a card without a panel of its own. The build stops
+ * here and names the component rather than emitting a page with a hole in it.
  */
-if (cards.length !== STAGE_COUNT) {
+if (cards.length === 0 || cards.length > STAGE_COUNT) {
   throw new Error(
-    `StageCards: expected exactly ${STAGE_COUNT} stage cards, received ${cards.length}. The four authored panels are mapped to card position, so the set has to hold one card per panel.`,
+    `StageCards: expected between 1 and ${STAGE_COUNT} stage cards, received ${cards.length}. A page that shows the whole sequence passes all ${STAGE_COUNT}; a page that presents a subset, such as the Site Intelligence page's cards 02–04, passes only those.`,
   );
 }
 
@@ -187,7 +191,7 @@ const STATUS = 'mt-8';
   <ul class={LIST}>
     {
       cards.map((card, index) => {
-        const panel = STAGE_PANELS[index];
+        const panel = card.panel ?? STAGE_PANELS[index] ?? STAGE_PANELS[0];
         const href = card.href ?? '';
         const isLinked = href !== '';
         const CardHead = isLinked ? 'a' : 'div';

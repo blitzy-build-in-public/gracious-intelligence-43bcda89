@@ -1,0 +1,163 @@
+---
+/**
+ * `/platform/site-intelligence` — A3's page (AAP 0.4.2 route table, 0.8.4 row 3, 0.12.1, 0.12.2).
+ *
+ * A page file does one thing (AAP 0.10.2): its frontmatter imports the typed content module and
+ * maps that module's fields onto component props, and its template composes those components in
+ * the order the plan fixes. It defines no component, holds no copy, adds no logic and exports
+ * nothing, so a copy edit changes this page through `src/content` alone and never through a file
+ * here (FR-4, rule W-1).
+ *
+ * The eight regions, in order: the top block carrying the product status label; the four systems
+ * as cards; the five model items with their caption; the four actions as rows; the detail
+ * paragraph; the three product-screen frames under their heading; the pilot band; and stage cards
+ * 02–04. Everything the design reference draws that the content map does not name is absent rather
+ * than filled — its Testimonials band above all, which leaves no placeholder, no empty wrapper and
+ * no gap behind it (rule W-1, B-4).
+ *
+ * Three properties of this file are deliberate. It sets no `style` attribute and ships no inline
+ * style element, because the content-security policy is hash-only and covers neither (AAP 0.4.5).
+ * It
+ * declares no indexability, because `BaseLayout` derives the robots meta from the live flag and no
+ * page may decide its own (AAP 0.4.2, WT-09). And it reads no configured value: the presence of the
+ * owner's screenshots is answered by `src/lib/screens.ts`, and every other variable belongs to the
+ * layout's own resolution (rule B-2).
+ */
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+import CategoryRows from '../../components/CategoryRows.astro';
+import Hero from '../../components/Hero.astro';
+import PilotBand from '../../components/PilotBand.astro';
+import ProseBlock from '../../components/ProseBlock.astro';
+import ScreenFrames from '../../components/ScreenFrames.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import StageCards from '../../components/StageCards.astro';
+import WorkGrid from '../../components/WorkGrid.astro';
+
+import { global } from '../../content/global.ts';
+import { siteIntelligence } from '../../content/site-intelligence.ts';
+import { screensPresent } from '../../lib/screens.ts';
+
+/** The page's copy, read once and mapped field by field below (AAP 0.8.2). */
+const { meta, hero, systems, model, actions, detail, screens, pilot, stages } = siteIntelligence;
+
+/**
+ * Which of the owner's three screenshots were present at build time, asked once (AAP 0.7.4).
+ *
+ * A missing file is a designed state, not a failure: `ScreenFrames` renders that frame's neutral
+ * panel and keeps its caption, so nothing in this file branches on the answer and no screenshot is
+ * ever drawn, generated or imitated (WT-12, rule B-4).
+ */
+const present = screensPresent();
+
+/**
+ * The three frames in the order the content layer lists them, each with the site-relative path its
+ * own key names.
+ *
+ * A path and not a key, because that is what the component renders; site-relative and built from
+ * the key, so no host is named here and no image outside `/screens/` can reach the slot
+ * (rule B-1, AAP 0.8.1). The caption and the text alternative are the content layer's own strings,
+ * passed through untouched.
+ */
+const frames = screens.frames.map((frame) => ({
+  src: `/screens/${frame.key}.png`,
+  caption: frame.caption,
+  alt: frame.alt,
+}));
+---
+
+<BaseLayout meta={meta} nav={global.nav} footer={global.footer}>
+  {/*
+    1. The top block: A3's heading as the page's only h1, its paragraph, the product status label
+    that qualifies the claim and the page-top panel that fills the reference's framed photo slot
+    (AAP 0.7.5, 0.2.4). No action and no wordmark: A3's top block draws neither, and the content
+    layer supplies neither.
+  */}
+  <Hero
+    label={hero.label}
+    heading={hero.heading}
+    text={hero.text}
+    action={hero.action}
+    illustration={hero.illustration}
+    statusLabel={hero.statusLabel}
+    wordmark={hero.wordmark}
+    wordmarkText={global.wordmark}
+  />
+
+  {/*
+    2. The four systems as text cards: the reference's card band with its image slots closed by
+    decision, so each card carries a title and a line and no frame, photograph or panel is drawn
+    (AAP 0.2.4, 0.6.2).
+  */}
+  <WorkGrid
+    label={systems.label}
+    heading={systems.heading}
+    text={systems.text}
+    items={systems.items}
+  />
+
+  {/*
+    3. The five model items and their caption. The specification writes each item as one string, so
+    the block receives `lines` and not `items`; the five strings are passed whole and never split,
+    joined or re-punctuated (AAP 0.4.3, 0.8.2).
+  */}
+  <WorkGrid
+    label={model.label}
+    heading={model.heading}
+    text={model.text}
+    caption={model.caption}
+    lines={model.lines}
+  />
+
+  {/*
+    4. The four actions as hairline rows. They are not links and carry neither a number nor a status
+    label, which is why the plain `Item` array is assignable here unchanged; nothing in the block is
+    focusable and nothing pretends to be clickable (AAP 0.6.2, rule B-4).
+  */}
+  <CategoryRows rows={actions} />
+
+  {/*
+    5. The detail paragraph: the one place on the site where a bare paragraph of A3's copy is set,
+    rendered whole and with no block title, because the component carries no title slot and the
+    specification supplies none there (AAP 0.8.1, 0.7.6).
+  */}
+  <ProseBlock text={detail.text} label={detail.label} />
+
+  {/*
+    6. The three product-screen frames, under the block's own heading.
+
+    The heading carries the same section shell as every other region — the page column with
+    `space-60` above and below at the narrow width and `space-80` at the wide one — so the
+    boundaries either side of it are 120 and 160 pixels rather than the bare column the reference
+    leaves between its own bands. The reference does place a heading above its portfolio strip at
+    both widths, at the same rung `SectionHeading` starts from, so rendering the content layer's
+    heading matches the frame rather than adding to it; the eyebrow the reference also draws there
+    has no field in the content layer and is therefore not invented.
+  */}
+  <div class="content py-60 wide:py-80">
+    <SectionHeading heading={screens.heading} as="h2" />
+  </div>
+
+  {/*
+    The strip itself. `present` decides each frame's state and `fallbackLabel` is the designed words
+    an absent screenshot shows; both are the content layer's or the build-time probe's, so this file
+    names neither (AAP 0.7.4, WT-12).
+  */}
+  <ScreenFrames frames={frames} present={present} fallbackLabel={screens.fallbackLabel} />
+
+  {/*
+    7. The pilot band: the one section that leaves the Cream ground, with its heading, its three
+    steps and its inverse action, imported from the single shared definition so the band reads
+    identically on the three pages that show it (AAP 0.6.2, A-4).
+  */}
+  <PilotBand heading={pilot.heading} steps={pilot.steps} action={pilot.action} />
+
+  {/*
+    8. Stage cards 02–04. Card 01 is the one stage with a page of its own and it links to this one,
+    so the sequence is already presented above it; the cards that remain lead nowhere and therefore
+    render as static blocks with no link affordance (AAP 0.8.4, rule B-4). Each card carries its own
+    panel, so the set keeps its artwork now that it is a subset of the four (AAP 0.2.4).
+  */}
+  <StageCards cards={stages} />
+</BaseLayout>

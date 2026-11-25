@@ -139,8 +139,11 @@ export interface SiteIntelligenceCopy {
    * (AAP 0.8.1).
    */
   detail: { label?: string; text: string };
-  /** The heading above the three product-screen frames, and the frames themselves. */
-  screens: { heading: string; frames: ScreenFrameCopy[] };
+  /**
+   * The heading above the three product-screen frames, the words a frame shows while its screenshot
+   * is absent, and the frames themselves.
+   */
+  screens: { heading: string; fallbackLabel: string; frames: ScreenFrameCopy[] };
   /**
    * The pilot band, imported from `shared/pilot.ts` so the band reads identically on the three pages
    * that show it (AAP A-4). Its action is a same-site link to the contact page, never a form or an
@@ -166,6 +169,18 @@ export interface SiteIntelligenceCopy {
  * cannot change one frame and leave the other two saying something else.
  */
 const demonstrationCaption = "Demonstration screen with simulated data";
+
+/**
+ * The words a product-screen frame shows while its screenshot has not been supplied.
+ *
+ * The action plan fixes it exactly as it fixes the caption above: AAP 0.2.4 names the neutral panel
+ * that takes an absent screenshot's place as reading this string, so it is the plan's own copy
+ * rather than a specification field, and the launch guard treats it as a designed fallback instead
+ * of a placeholder (AAP 0.7.4, 0.9.5). It lives in this module rather than in `ScreenFrames`,
+ * because a component may hold no user-visible string (rule W-1), and it is one definition because
+ * all three frames show it — so a copy edit cannot leave one frame saying something else.
+ */
+const demonstrationFallback = "Screen to follow";
 
 /**
  * A3's copy for `/platform/site-intelligence`, as the page maps it onto `Hero`, `WorkGrid`,
@@ -217,6 +232,7 @@ export const siteIntelligence: SiteIntelligenceCopy = {
   },
   screens: {
     heading: "TO BE PROVIDED",
+    fallbackLabel: demonstrationFallback,
     frames: [
       {
         key: "investigate",

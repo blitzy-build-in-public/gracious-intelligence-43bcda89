@@ -90,14 +90,17 @@ const BUDGET: Record<RowTitleRung, number> = {
 
 /**
  * The longest word each rung sets inside the title's wide-width column, which is the design's
- * 16.4% share of the row — 220 pixels at 1440. Urbanist 500 averages about 21.4 pixels to the
- * character at the 48-pixel step, so that column holds about ten characters of one unbroken word
- * before it has to break the word at the column's edge, and about twelve at the 40-pixel step below
- * it. A word is checked as well as the whole title because a column that has to grow to hold one
- * word moves every following row's second slot, and the design's rows share one column.
+ * 16.4% share of the row — 220 pixels at 1440. A capital in Urbanist 500 at the 48-pixel step
+ * advances about 27 pixels, so that column holds seven characters of one unbroken word before it
+ * has to break the word at the column's edge, and nine at the 40-pixel step below it. The budget
+ * was ten before the rendered page was measured, and a ten-character word broke mid-word at the
+ * column's edge and left a single letter on a line of its own, so the measure rather than the
+ * estimate sets it now. A word is checked as well as the whole title because a column that has to
+ * grow to hold one word moves every following row's second slot, and the design's rows share one
+ * column.
  */
 const WORD_BUDGET: Record<RowTitleRung, number> = {
-  'type-heading-2': 10,
+  'type-heading-2': 7,
   'type-heading-3': Number.POSITIVE_INFINITY,
 };
 

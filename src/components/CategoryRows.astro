@@ -1,0 +1,251 @@
+---
+/**
+ * The site's hairline row block: the ten sovereignty controls on `/sovereignty`, the four actions on
+ * the home page and on the Site Intelligence page (AAP 0.2.3, 0.6.2, 0.8.1).
+ *
+ * One component serves both sections because the design reference draws one row component for a
+ * category list and a control list alike. The ten controls arrive with a `number` and a
+ * `statusLabel`, the four actions with neither, and those two optional fields on the single
+ * `RowItem` type are the whole difference — not a second component, and not a second row type
+ * (AAP 0.4.3).
+ *
+ * Every string is a row field or the heading, handed in by the content layer, so the component
+ * holds no copy of its own and borrows none from the design file (rules W-1, B-4). The design's
+ * trailing outlined square with its arrow, and the preview image its hover variant reveals, are
+ * template chrome tied to content that does not exist here, and are dropped: these rows are not
+ * links, so nothing in the block is focusable, nothing pretends to be clickable, and there is no
+ * hover state to reveal (AAP 0.2.3, rule B-4). Nothing is invented to fill their place.
+ *
+ * A real `<ul>` of `<li>`s, so the rows are announced as the list they are, and the block's only
+ * heading is the one the caller passes (rule B-3). It is static markup: no script, no island, no
+ * framework import and no request (rules B-1, W-2), and it reads no configuration (rule B-2).
+ */
+
+import SectionHeading from './SectionHeading.astro';
+import StatusLabel from './StatusLabel.astro';
+import type { RowItem } from '../content/global.ts';
+
+/**
+ * The levels a row title may take. It sits one step below the block's own heading, and takes the
+ * level that heading would have taken where the caller passes no heading — so a page that renders
+ * this block with no heading above it still reads `h1` then row titles, never `h1` then `h3`
+ * (rule B-3).
+ */
+type RowTitleLevel = 'h2' | 'h3';
+
+/**
+ * The two rungs a row title may occupy (AAP 0.2.2, 0.6.3): the design's row-title step, and the
+ * next one down, which is where a title steps when its copy does not fit. There is no rung above
+ * the design's own, because a row title is never larger than the design draws it.
+ */
+type RowTitleRung = 'type-heading-2' | 'type-heading-3';
+
+interface Props {
+  /**
+   * The rows in the order the content layer lists them: the ten sovereignty controls, each with a
+   * `number` and a `statusLabel`, or the four actions, which carry neither.
+   */
+  rows: RowItem[];
+  /**
+   * The block's section heading. Absent — or blank after trimming, which is how an unfilled field
+   * arrives — renders no heading at all rather than an empty one and the gap it would leave.
+   */
+  heading?: string;
+}
+
+const { rows, heading } = Astro.props;
+
+/** The heading as it will be rendered, kept exactly as the content layer wrote it. */
+const headingText = heading ?? '';
+
+/**
+ * A blank heading counts as absent. Trimming decides that and nothing else, so the string that
+ * reaches the page is the caller's own.
+ */
+const hasHeading = headingText.trim() !== '';
+
+/**
+ * The row titles are one level below the block's heading when the block has one. Without one they
+ * are the highest level the block renders, so the sequence below the page's single `h1` is never
+ * broken (rule B-3).
+ */
+const RowTitle: RowTitleLevel = hasHeading ? 'h3' : 'h2';
+
+/**
+ * The most characters each rung sets inside the row's line budget, and the measure the step-down is
+ * decided on.
+ *
+ * The budget is two lines in the narrower of the two content columns: the 358-pixel column of the
+ * 390-pixel artboard, at an average advance of about half the type size in Urbanist 500, which is
+ * ≈28 characters a line at the 24-pixel mobile step of `heading-2` and so ≈56 in two. The design
+ * gives its own row title a single short word on one line at 48 pixels, so two lines is already the
+ * generous reading of its budget; beyond that the title takes the next rung down, which sets it in
+ * more lines' worth of characters rather than in a size between rungs. The smallest rung admits
+ * every title, which is what stops a long one stepping below the scale.
+ */
+const BUDGET: Record<RowTitleRung, number> = {
+  'type-heading-2': 56,
+  'type-heading-3': Number.POSITIVE_INFINITY,
+};
+
+/**
+ * The longest word each rung sets inside the title's wide-width column, which is the design's
+ * 16.4% share of the row — 220 pixels at 1440. Urbanist 500 averages about 21.4 pixels to the
+ * character at the 48-pixel step, so that column holds about ten characters of one unbroken word
+ * before it has to break the word at the column's edge, and about twelve at the 40-pixel step below
+ * it. A word is checked as well as the whole title because a column that has to grow to hold one
+ * word moves every following row's second slot, and the design's rows share one column.
+ */
+const WORD_BUDGET: Record<RowTitleRung, number> = {
+  'type-heading-2': 10,
+  'type-heading-3': Number.POSITIVE_INFINITY,
+};
+
+/**
+ * The longest title in the list, which is what the rung is chosen from: the rows make one column of
+ * titles, and a list whose rows each stepped down alone would set two sizes in one section.
+ */
+const LONGEST_TITLE = rows.reduce((longest, row) => Math.max(longest, row.title.trim().length), 0);
+
+/**
+ * The longest single word in the list's titles, which the rung is also chosen from: a title that
+ * fits the column in several lines still breaks it if one of its words is wider than the column.
+ */
+const LONGEST_WORD = rows.reduce(
+  (longest, row) =>
+    Math.max(
+      longest,
+      ...row.title
+        .trim()
+        .split(/\s+/)
+        .map((word) => word.length),
+    ),
+  0,
+);
+
+/** The design's row-title rung, or the step below it when the copy needs more room than it gives. */
+const TITLE_RUNG: RowTitleRung =
+  LONGEST_TITLE > BUDGET['type-heading-2'] || LONGEST_WORD > WORD_BUDGET['type-heading-2']
+    ? 'type-heading-3'
+    : 'type-heading-2';
+
+/**
+ * The block on the page's own content column (AAP 0.8.4): the wide inset and the 390 one both come
+ * from `.content`, and the block's separation from the sections either side of it is the design's
+ * own section padding — `space-60` at the narrow width and `space-80` at the wide one (AAP 0.2.1).
+ * A column, so the heading and the list are spaced by `gap` rather than by a margin on either of
+ * them: `space-40` between them at the narrow width and `space-56` at the wide one, the design's
+ * own heading-to-list gap. With no heading the column has one child and no gap resolves.
+ */
+const SECTION = 'content flex flex-col gap-40 wide:gap-56 py-60 wide:py-80';
+
+/**
+ * The heading is centred, as the design centres this block's title frame (AAP 0.2.1). Alignment is
+ * inherited, because `SectionHeading` sets none of its own — it is the consumer's to state, and this
+ * is where the design states it.
+ */
+const HEADING = 'text-center';
+
+/**
+ * One row's contents. The four slots stack at the narrow width — a number on its own line, the
+ * title, the line, then the status label — because each row carries a sentence and a label and 358
+ * pixels cannot hold them side by side without shrinking something out of the column; the design
+ * stacks its own row the same way at 390. From the wide breakpoint they lie in one row, aligned on
+ * their centres as the design aligns its row and its inner groups (AAP 0.2.1), with `space-32`
+ * between them, the design's own title-to-next-slot gap. `space-12` between stacked children is the
+ * design's narrow-width gap.
+ */
+const ROW_CONTENT = 'flex flex-col gap-12 py-32 wide:flex-row wide:items-center wide:gap-32 wide:py-40';
+
+/**
+ * The row's only rule: the hairline under every row, the last included, and none above the first —
+ * which is exactly what the design draws (AAP 0.2.3). It is decoration only: the design's 0.6-pixel
+ * Khaki stroke takes the whole pixel here (AAP 0.6.3), and neither this rule nor any other is the
+ * sole boundary of a control, because nothing in the block is a control.
+ */
+const ROW = 'border-hairline';
+
+/**
+ * The optional ordinal column: Geist Mono at the design's mono-meta step, in the palette's tertiary
+ * ink at 7.25:1 on Cream (AAP 0.2.2, rule B-3). Its fixed width is a minimum, so the ordinals line up
+ * in a column of `space-48` at the wide width and `space-32` at the narrow one while a longer value
+ * — a placeholder before A4's ordinals arrive, or an ordinal of three digits — widens the column
+ * instead of wrapping inside it.
+ */
+const NUMBER = 'type-button-2 text-ink-coffee min-w-32 shrink-0 wide:min-w-48';
+
+/**
+ * The row title: the design's Heading 2 step, or the rung below when the list's longest title needs
+ * more lines (AAP 0.2.2). No colour is set — the theme paints the page's primary ink, Chocolate at
+ * 17.08:1 on Cream (rule B-3).
+ *
+ * Its wide-width column is the design's own share of the row rather than a length: the design gives
+ * the title a 220-pixel box at one end of a 1340-pixel row, so the title takes 16.4% of the column
+ * and the next slot starts 252 pixels in at 1440, which is exactly where the design puts it. A share
+ * keeps that proportion as the column narrows between the breakpoint and the design width, and it
+ * keeps the measure out of this file: no spacing token is 220 pixels, and a percentage is the
+ * proportional expression the design system asks for rather than a hard length. `text-balance` shares
+ * a wrapped title's lines out evenly instead of leaving one word alone on the last of them.
+ *
+ * `min-w-[0]` is what holds the share — the zero is written as an arbitrary value because the
+ * theme's spacing scale begins at four pixels and so has no step that resolves to it, and zero is one
+ * of the few lengths that stands on its own. A flex item's automatic minimum is the width of its
+ * longest word, so without it one title whose word is wider than the column would widen its own row
+ * and move that row's second slot off the line the other rows share. The word budget above steps the
+ * whole list's rung down before a word reaches that width, so the column is only ever broken as a
+ * last resort, by the page's own `overflow-wrap`.
+ */
+const TITLE = `${TITLE_RUNG} text-balance wide:basis-[16.4%] wide:min-w-[0] wide:shrink-0`;
+
+/**
+ * The row's line: the design's Body 3 step at leading 1.5, in the palette's secondary ink, Taupe at
+ * 9.40:1 on Cream (AAP 0.2.2, rule B-3), which is the ink the section headings' own lead paragraphs
+ * take. It fills whatever the title and the status label leave, as the design's description and meta
+ * boxes do between the title and the row's end.
+ */
+const LINE = 'type-body-3 text-ink-taupe wide:flex-1';
+
+/**
+ * The status label's slot at the row's end: kept at the label's own width so the line yields the
+ * space rather than the label wrapping, and last in the flow so it sits at the row's end at the wide
+ * width and below the line where the slots stack.
+ */
+const STATUS = 'wide:shrink-0';
+---
+
+<section class={SECTION}>
+  {
+    hasHeading && (
+      <div class={HEADING}>
+        <SectionHeading heading={headingText} as="h2" />
+      </div>
+    )
+  }
+  {/*
+    The base stylesheet removes the list marker, and WebKit drops a list's semantics along with its
+    marker, so `role="list"` keeps the block announced as a list of rows (rule B-3).
+  */}
+  <ul role="list">
+    {
+      rows.map((row) => {
+        const numberText = row.number ?? '';
+        const statusText = row.statusLabel ?? '';
+
+        return (
+          <li class={ROW}>
+            <div class={ROW_CONTENT}>
+              {numberText.trim() !== '' && <span class={NUMBER}>{numberText}</span>}
+              <RowTitle class={TITLE}>{row.title}</RowTitle>
+              <p class={LINE}>{row.line}</p>
+              {statusText.trim() !== '' && (
+                <span class={STATUS}>
+                  <StatusLabel text={statusText} tone="default" />
+                </span>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>

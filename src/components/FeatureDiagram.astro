@@ -1,0 +1,214 @@
+---
+/**
+ * The product-feature diagram on `/`: three columns of the site's own words in the place the design
+ * reference gives its three-image stack (AAP 0.8.1, 0.2.4).
+ *
+ * The stack is not replaced by an illustration file. The reference fills that slot with three
+ * photographs of another business's models, which rule W-1 keeps out of the output and WT-08 keeps
+ * out of the source tree, so the slot is filled with structure instead: the inputs on the left, the
+ * model in the centre, the actions it enables on the right. Every word is a prop — the component
+ * holds no string, names no customer, invents no metric and shows no screenshot (rules W-1, B-4).
+ *
+ * SVG geometry, HTML words. The links between the columns are one inline `<svg>`, and it carries no
+ * `<text>`: type inside a fixed `viewBox` neither reflows at the narrowest width the site is read
+ * at nor survives a reader's text-size increase, while rule B-3 requires this copy to stay real,
+ * selectable, announceable text. The drawing shares the columns' grid area, so it stretches with
+ * them instead of being pinned to a size of its own, and it paints behind them because it comes
+ * first in that area. It appears only from the wide breakpoint up: below it the columns stack, and
+ * a vertical link would run through the copy.
+ *
+ * Static markup throughout: no script, no island, no framework import, no request (rules B-1, W-2).
+ * The one control is the caller's action, rendered by `Button.astro`, which owns its states and the
+ * theme's `:focus-visible` ring.
+ */
+import SectionHeading from './SectionHeading.astro';
+import Button from './Button.astro';
+import type { DiagramColumn } from '../content/home.ts';
+import type { Link } from '../content/global.ts';
+
+interface Props {
+  /**
+   * The diagram's three columns, in order: left, centre, right. Each carries a `title` and exactly
+   * one of `items` and `lines` — the outer columns pair a title with a line, the centre column
+   * carries single strings — plus an optional `caption`, which the centre column owns (AAP 0.4.3).
+   */
+  columns: DiagramColumn[];
+  /** The block's heading, rendered as the section's `h2`. */
+  heading: string;
+  /** The block's one action: A1's "How it works" link to the product page (AAP 0.8.1, WT-17). */
+  action: Link;
+  /** The figure's accessible name, from A8 (rule B-3). */
+  alt: string;
+}
+
+const { columns, heading, action, alt } = Astro.props;
+
+/**
+ * The block is a three-part model and the design gives it three columns, so any other count is a
+ * different block: stopping the build is the honest outcome, because a missing or duplicated column
+ * would publish a model the copy does not describe (rule B-4).
+ */
+const COLUMN_COUNT = 3;
+
+if (columns.length !== COLUMN_COUNT) {
+  throw new Error(
+    `FeatureDiagram: ${COLUMN_COUNT} columns are required (left, centre, right); received ${columns.length}.`,
+  );
+}
+
+/**
+ * A column carries its copy in one of two shapes and never both. A column with both would render
+ * one of them silently and drop the other, and a column with neither would render a heading over
+ * nothing, so either mistake stops the build and names the column (AAP 0.4.3).
+ */
+columns.forEach((column, index) => {
+  const hasItems = column.items !== undefined;
+  const hasLines = column.lines !== undefined;
+
+  if (hasItems === hasLines) {
+    throw new Error(
+      `FeatureDiagram: column ${index + 1} must carry exactly one of "items" and "lines"; received ${
+        hasItems ? 'both' : 'neither'
+      }.`,
+    );
+  }
+});
+
+/**
+ * The figure's accessible name comes from configuration-free A8 copy, so a blank one is a defect
+ * rather than a state: an unnamed figure is announced as an anonymous group (rule B-3).
+ */
+if (alt.trim() === '') {
+  throw new Error('FeatureDiagram: "alt" names the figure and may not be blank (rule B-3).');
+}
+
+/**
+ * The action is the block's only control, and a control with no name or no target cannot perform
+ * its function, which rule B-4 forbids outright.
+ */
+if (action.label.trim() === '' || action.href.trim() === '') {
+  throw new Error(
+    'FeatureDiagram: "action" needs both a label and a target; an unnamed or dead control fails rule B-4.',
+  );
+}
+
+/**
+ * The section's geometry: the page's content column (AAP 0.8.4), then the section rhythm the design
+ * reference draws around this block — `space-60` above and `space-96` below at the narrow width,
+ * `space-80` and `space-160` from the theme's 900 breakpoint (AAP 0.2.1). The wide step comes from
+ * the theme's `--breakpoint-wide` token through Tailwind's `wide:` variant, so the breakpoint has
+ * one source (PA-5) and this block moves with it.
+ */
+const LAYOUT = 'content pt-60 pb-96 wide:pt-80 wide:pb-160';
+
+/**
+ * The drawing and the columns share one grid area: the `<svg>` comes first so it paints behind the
+ * copy, and both fill the cell, so the geometry follows the columns at every width without a
+ * coordinate of its own. The theme declares no zero-length spacing step, and this component writes
+ * no length of its own, so nothing here needs an offset.
+ */
+const DIAGRAM = 'mt-40 grid wide:mt-56';
+
+/**
+ * The drawing fills the shared cell and takes its colour from the theme's decorative hairline ink,
+ * which is the role Khaki holds on Cream (2.51:1 — a line, never text, AAP 0.2.2). Each link sits
+ * on a column boundary, so `crispEdges` is what keeps it one solid pixel column: a smoothed stroke
+ * on an exact boundary straddles two pixel columns at half density and reads lighter than the 1px
+ * rules it belongs beside.
+ */
+const GEOMETRY =
+  'col-start-1 row-start-1 hidden h-full w-full text-khaki wide:block';
+
+/**
+ * Three equal columns from the wide breakpoint up and one column below it, with no gap either way:
+ * the gutter is the columns' own `space-20` inline padding, so the column boxes divide the content
+ * column exactly into thirds and the two drawn links land on those thirds at every width. Stacked,
+ * the columns' `space-16` block padding adds up to the `space-32` the design gives the narrow rung.
+ */
+const COLUMNS = 'col-start-1 row-start-1 grid grid-cols-1 wide:grid-cols-3';
+
+/** One column: its inline padding is the wide gutter, its block padding the narrow one. */
+const COLUMN = 'py-16 wide:px-20';
+
+/** The column's title, closed by the design's decorative hairline (AAP 0.2.3, 0.6.3). */
+const TITLE = 'type-heading-4 border-hairline pb-16';
+
+/** The item rows: each title over its line, `space-20` apart. */
+const ITEMS = 'mt-20 flex flex-col gap-20';
+
+/** The centre column's single strings, closer together than the item pairs because they read on. */
+const LINES = 'mt-20 flex flex-col gap-12';
+
+const ITEM_TITLE = 'type-heading-5';
+
+/**
+ * The secondary ink on Cream: Taupe at 9.40:1 (AAP 0.2.2, rule B-3). A line set under its own title
+ * keeps the design's title-to-copy step, `space-8` at the narrow width and `space-12` at the wide one.
+ */
+const ITEM_LINE = 'type-body-3 text-ink-taupe mt-8 wide:mt-12';
+
+/**
+ * A single string in the centre column carries no title above it, so it takes no step of its own:
+ * the column's `gap-12` alone separates it from the string before it.
+ */
+const LINE = 'type-body-3 text-ink-taupe';
+
+/** The centre column's caption, in the palette's tertiary ink on Cream (Coffee Bean, ≈7.3:1). */
+const CAPTION = 'type-button-2 text-ink-coffee mt-24';
+
+const ACTION = 'mt-32 wide:mt-40';
+---
+
+<section class={LAYOUT}>
+  <figure aria-label={alt}>
+    <SectionHeading heading={heading} as="h2" />
+
+    <div class={DIAGRAM}>
+      <svg
+        class={GEOMETRY}
+        aria-hidden="true"
+        focusable="false"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1"
+        shape-rendering="crispEdges"
+      >
+        <line x1="33.333%" y1="0" x2="33.333%" y2="100%"></line>
+        <line x1="66.667%" y1="0" x2="66.667%" y2="100%"></line>
+      </svg>
+
+      <div class={COLUMNS}>
+        {
+          columns.map((column) => (
+            <div class={COLUMN}>
+              <h3 class={TITLE}>{column.title}</h3>
+              {column.items !== undefined ? (
+                <ul class={ITEMS}>
+                  {column.items.map((item) => (
+                    <li>
+                      <p class={ITEM_TITLE}>{item.title}</p>
+                      <p class={ITEM_LINE}>{item.line}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div class={LINES}>
+                  {column.lines.map((line) => (
+                    <p class={LINE}>{line}</p>
+                  ))}
+                </div>
+              )}
+              {column.caption !== undefined && column.caption.trim() !== '' && (
+                <p class={CAPTION}>{column.caption}</p>
+              )}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class={ACTION}>
+      <Button label={action.label} href={action.href} tone="default" />
+    </div>
+  </figure>
+</section>

@@ -18,9 +18,9 @@
  * in this file. Loading the rasteriser first would bind the host's fonts instead of the
  * repository's and the social image would silently ship in a face the site never chose.
  */
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { global } from '../src/content/global.ts';
@@ -74,11 +74,29 @@ const PROBE_BASELINE_OFFSET = 20;
 const PROBE_SAMPLE = 'Probe 0123';
 
 /**
- * Conservative advance of one Urbanist character as a fraction of the font size. Urbanist's widest
- * lowercase letters sit well under 0.60 em, so a line this estimate calls too wide really is too
- * wide and a line it accepts fits: wrapping may break a line early, and never runs past the slot.
+ * The alpha above which a pixel counts as ink, for the font probe and for the width measurement
+ * alike. Antialiasing leaves the edges of every glyph faint, so only a pixel drawn at real coverage
+ * counts, and a face that draws nothing leaves every pixel fully transparent.
  */
-const ADVANCE_EM = 0.6;
+const INK_ALPHA_THRESHOLD = 16;
+
+/** The font weight a slot draws at when its element declares none: the SVG and CSS initial value. */
+const DEFAULT_FONT_WEIGHT = '400';
+
+/**
+ * The arena one line is measured on, in the slot's own units, expressed as multiples of the slot's
+ * wrap width and font size: twice the wrap width plus 40 units wide, twice the font size tall, with
+ * the baseline at one and a half font sizes. A line the slot can hold is therefore never clipped,
+ * and the width read back is the width the composed image will draw. A line wider than the arena is
+ * cut off at its right edge and is still reported as too wide, so the arena bounds the figure this
+ * script prints and never the verdict.
+ */
+const MEASURE_ARENA = {
+  widthFactor: 2,
+  widthPadding: 40,
+  heightFactor: 2,
+  baselineFactor: 1.5,
+} as const;
 
 /** Fixed encoder settings, so two runs over the same inputs produce identical bytes. */
 const PNG_OPTIONS = { compressionLevel: 9 } as const;
@@ -95,6 +113,8 @@ interface Slot {
   readonly lineHeight: number;
   readonly wrapWidth: number;
   readonly family: string;
+  /** The weight the slot draws at, so a line is measured in the weight the image will use. */
+  readonly weight: string;
 }
 
 /** A canvas declared by an SVG's own `width`/`height` attributes or by its `viewBox`. */
@@ -221,6 +241,17 @@ interface Placement {
   readonly value: string;
 }
 
+/**
+ * The weight a slot draws at, exactly as the template declares it, because a heavy line draws wider
+ * than a regular one and the width this script measures has to be the width the image will draw. An
+ * element that declares no `font-weight` draws at the SVG initial weight.
+ */
+function readFontWeight(attributes: string): string {
+  const declared = readAttribute(attributes, 'font-weight');
+  const weight = declared === null ? DEFAULT_FONT_WEIGHT : declared.trim();
+  return weight === '' ? DEFAULT_FONT_WEIGHT : weight;
+}
+
 /** Reads one substitution slot out of the template, exactly as the template declares it. */
 function readSlot(template: string, marker: string): Slot {
   const element = new RegExp(`<text\\b[^>]*>\\s*${escapeRegExp(marker)}\\s*</text>`).exec(template);
@@ -246,26 +277,79 @@ function readSlot(template: string, marker: string): Slot {
     lineHeight: readNumber(attributes, 'data-line-height', context),
     wrapWidth: readNumber(attributes, 'data-wrap-width', context),
     family,
+    weight: readFontWeight(attributes),
   };
 }
 
-/** An upper-bound estimate of a string's rendered width, in the slot's own coordinates. */
-function estimateWidth(text: string, slot: Slot): number {
-  return text.length * slot.fontSize * ADVANCE_EM;
+/**
+ * Measures the width the rasteriser itself draws one line at, in the slot's own units. A character
+ * count can only guess: an estimate forgiving enough to accept the copy these slots exist to carry
+ * under-states wide capitals, and one raised to cover them refuses that copy. So the line is
+ * rendered alone on a transparent arena in the slot's own family, size and weight, and the
+ * right-most column carrying ink is the width it draws. The arena sets no colour on purpose — the
+ * SVG default draws ink, which is all the measurement needs, and no colour value is duplicated
+ * outside src/styles/theme.css.
+ */
+async function measureDrawnWidth(sharp: SharpFactory, line: string, slot: Slot): Promise<number> {
+  const arena = {
+    width: slot.wrapWidth * MEASURE_ARENA.widthFactor + MEASURE_ARENA.widthPadding,
+    height: slot.fontSize * MEASURE_ARENA.heightFactor,
+    baseline: slot.fontSize * MEASURE_ARENA.baselineFactor,
+  };
+  const svg = [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${arena.width}" height="${arena.height}">`,
+    `<text x="0" y="${arena.baseline}" font-family="${escapeXml(slot.family)}" font-size="${slot.fontSize}" font-weight="${escapeXml(slot.weight)}">${escapeXml(line)}</text>`,
+    '</svg>',
+  ].join('');
+  const { data, info } = await sharp(Buffer.from(svg, 'utf8'))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const alpha = info.channels - 1;
+  for (let x = info.width - 1; x >= 0; x -= 1) {
+    for (let y = 0; y < info.height; y += 1) {
+      if ((data[(y * info.width + x) * info.channels + alpha] ?? 0) > INK_ALPHA_THRESHOLD) {
+        return x + 1;
+      }
+    }
+  }
+  return 0;
 }
 
-/** Wraps a string greedily at spaces so no estimated line is wider than the slot's wrap width. */
-function wrapToWidth(value: string, slot: Slot): string[] {
+/** One line's drawn width in slot units; a wrapping pass awaits each line it needs. */
+type LineWidth = (line: string) => Promise<number>;
+
+/** Builds the measurer for one slot's type, memoising it so each distinct line costs one render. */
+function lineWidthMeasurer(sharp: SharpFactory, slot: Slot): LineWidth {
+  const measured = new Map<string, number>();
+  return async (line: string): Promise<number> => {
+    const known = measured.get(line);
+    if (known !== undefined) {
+      return known;
+    }
+    const width = await measureDrawnWidth(sharp, line, slot);
+    measured.set(line, width);
+    return width;
+  };
+}
+
+/**
+ * Wraps a string greedily at spaces so that no line the rasteriser draws is wider than the slot's
+ * wrap width. A single word wider than the slot is never broken: the run stops and names the word
+ * and the width it draws, because a broken word would publish copy the owner did not write.
+ */
+async function wrapToWidth(width: LineWidth, value: string, slot: Slot): Promise<string[]> {
   const lines: string[] = [];
   let line = '';
   for (const word of value.trim().split(/\s+/)) {
-    if (estimateWidth(word, slot) > slot.wrapWidth) {
+    const wordWidth = await width(word);
+    if (wordWidth > slot.wrapWidth) {
       throw new AssetError(
-        `the word "${word}" in the ${slot.name} slot is wider than that slot's ${slot.wrapWidth} wrap width at ${slot.fontSize}, and words are never broken to make one fit.`,
+        `the word "${word}" in the ${slot.name} slot is wider than that slot's ${slot.wrapWidth} wrap width at ${slot.fontSize}: it draws ${wordWidth} wide, and words are never broken to make one fit.`,
       );
     }
     const candidate = line === '' ? word : `${line} ${word}`;
-    if (line !== '' && estimateWidth(candidate, slot) > slot.wrapWidth) {
+    if (line !== '' && (await width(candidate)) > slot.wrapWidth) {
       lines.push(line);
       line = word;
     } else {
@@ -288,10 +372,15 @@ function assertCarriesText(value: string, slot: Slot): void {
 }
 
 /**
- * Refuses a composition that would overflow the frame. A slot has as much height as the next
- * slot's baseline minus its own, and the lowest slot as much as the frame has left below it, the
- * frame's bottom inset being equal to its left inset. Overflow is fixed by shortening the copy,
- * never by shrinking the type.
+ * Refuses a composition that would overflow the frame, using the room the template's own geometry
+ * leaves rather than a second set of measurements. A slot's `y` is the baseline its first line sits
+ * on, so that first line costs no height: the slot has room for its own baseline and then however
+ * many whole lines fit below it — one line plus the room the following baselines take. That room is
+ * the next slot's baseline minus this slot's, and, for the lowest slot, the frame bottom less the
+ * inset the frame sets its content at (its left inset, which is also its bottom margin) less this
+ * slot's own baseline. `data-line-height` is the only budget input, so the template's own analysis
+ * of three title lines and two text lines is exactly what this allows. Overflow is fixed by
+ * shortening the copy, never by shrinking the type.
  */
 function assertFits(
   lines: readonly string[],
@@ -305,7 +394,7 @@ function assertFits(
     .at(0);
   const inset = Math.min(...slots.map((other) => other.x));
   const available = below === undefined ? canvas.height - inset - slot.y : below.y - slot.y;
-  const allowed = Math.floor(available / slot.lineHeight);
+  const allowed = Math.floor(available / slot.lineHeight) + 1;
   if (lines.length > allowed) {
     throw new AssetError(
       `the ${slot.name} slot wraps to ${lines.length} lines but its frame has room for ${allowed} at ${slot.lineHeight} per line, so ${OG_OUTPUT_FILE} would overflow. Shorten the string; the type size is never reduced to make it fit.`,
@@ -339,19 +428,21 @@ function replaceSlotContent(svg: string, slot: Slot, lines: readonly string[]): 
 }
 
 /**
- * Substitutes both content strings into the template and returns the markup to rasterise. The
- * markup is composed in memory and never written to the source tree.
+ * Substitutes both content strings into the template and returns the markup to rasterise, wrapping
+ * each string by the width the rasteriser draws it at. The markup is composed in memory and never
+ * written to the source tree.
  */
-function composeSocialImage(
+async function composeSocialImage(
+  sharp: SharpFactory,
   template: string,
   canvas: Canvas,
   placements: readonly Placement[],
-): string {
+): Promise<string> {
   const slots = placements.map((placement) => placement.slot);
   let composed = template;
   for (const { slot, value } of placements) {
     assertCarriesText(value, slot);
-    const lines = wrapToWidth(value, slot);
+    const lines = await wrapToWidth(lineWidthMeasurer(sharp, slot), value, slot);
     assertFits(lines, slot, slots, canvas);
     composed = replaceSlotContent(composed, slot, lines);
   }
@@ -406,32 +497,68 @@ async function captureStderr<T>(run: () => Promise<T>): Promise<{ result: T; std
 }
 
 /**
+ * How many pixels of a rendered probe carry ink, counted from the alpha channel alone so the count
+ * is independent of any colour value. A face that fontconfig resolves but the rasteriser draws
+ * nothing for leaves every pixel transparent, whatever bytes its PNG happens to contain.
+ */
+async function countInkPixels(sharp: SharpFactory, png: Buffer): Promise<number> {
+  const { data, info } = await sharp(png)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  let ink = 0;
+  for (let index = info.channels - 1; index < data.length; index += info.channels) {
+    if ((data[index] ?? 0) > INK_ALPHA_THRESHOLD) {
+      ink += 1;
+    }
+  }
+  return ink;
+}
+
+/**
  * The two-probe font check of PA-3. Two renders that differ only in font family must differ in
  * bytes: the family the template itself names, drawn through `scripts/fonts.conf`, versus a family
  * that cannot exist. Identical renders mean the rasteriser cannot tell the site's typeface from an
  * absent one — the social image would ship in a fallback face — so the run stops here, before any
- * file is written, and names the remedy instead of substituting a font.
+ * file is written, and names the remedy instead of substituting a font. A difference alone proves
+ * less than it looks: a face the rasteriser resolves and then draws blank also differs from the
+ * absent one, so the resolved probe must additionally carry ink.
  */
-async function assertFontsResolve(sharp: SharpFactory, family: string): Promise<void> {
+async function assertFontsResolve(
+  sharp: SharpFactory,
+  family: string,
+  cacheDir: string | null,
+): Promise<void> {
   const probe = await captureStderr(async () => {
     const resolved = await rasterise(sharp, { input: Buffer.from(probeSvg(family), 'utf8') });
     const absent = await rasterise(sharp, {
       input: Buffer.from(probeSvg(ABSENT_PROBE_FAMILY), 'utf8'),
     });
-    return resolved.data.equals(absent.data);
+    return { resolved: resolved.data, identical: resolved.data.equals(absent.data) };
   });
-  if (probe.result) {
+  if (probe.result.identical) {
+    const cache =
+      cacheDir === null
+        ? `${FONTCONFIG_FILE} declares no <cachedir>, so no cache survives a run.`
+        : `The cache directory ${cacheDir} that ${FONTCONFIG_FILE} declares is cleared at the start of every run, so a cache carried over from an earlier run is not the reason the two render the same.`;
     const evidence = probe.stderr === '' ? '' : ` The rasteriser reported: ${probe.stderr}`;
     throw new AssetError(
       [
         `the font probes render identically: "${family}" and "${ABSENT_PROBE_FAMILY}" produced the same image, so the rasteriser cannot distinguish the site's own typeface from an absent one and ${OG_OUTPUT_FILE} would ship in a fallback face.`,
+        cache,
         `The rasteriser reads fonts only through ${FONTCONFIG_FILE}, whose single <dir> must be the rasteriser's font directory (src/fonts, holding the TTF copies Urbanist-var.ttf and GeistMono-var.ttf that librsvg can read; the published public/fonts/urbanist-latin-var.woff2 is not readable by every rasteriser).`,
         `PA-3's remedy is to vendor those two variable TTF copies under src/fonts/ for this script alone, never published, with no second font directory. No artefact was written.`,
       ].join(' ') + evidence,
     );
   }
+  const ink = await countInkPixels(sharp, probe.result.resolved);
+  if (ink === 0) {
+    throw new AssetError(
+      `the "${family}" probe drawn through ${FONTCONFIG_FILE} contains no ink: the rasteriser resolved the family without drawing it, so ${OG_OUTPUT_FILE} would ship with empty text and no artefact was written.`,
+    );
+  }
   console.log(
-    `fonts: "${family}" and "${ABSENT_PROBE_FAMILY}" render differently, so the local ${family} is the face the rasteriser draws.`,
+    `fonts: "${family}" and "${ABSENT_PROBE_FAMILY}" render differently and the "${family}" probe draws ${ink} ink pixels, so the local ${family} is the face the rasteriser draws.`,
   );
 }
 
@@ -455,6 +582,56 @@ async function publish(path: string, data: Buffer): Promise<void> {
   published.push(path);
 }
 
+/**
+ * The cache directory `fonts.conf` declares, resolved to an absolute path, or `null` when the file
+ * declares none. Only a `cwd`-relative cachedir is one this script can locate; any other prefix is
+ * fontconfig's to resolve, and is left alone.
+ */
+function readFontconfigCacheDir(conf: string): string | null {
+  const declared = /<cachedir\b([^>]*)>([^<]*)<\/cachedir>/.exec(conf);
+  if (declared === null) {
+    return null;
+  }
+  const path = (declared[2] ?? '').trim();
+  const prefix = readAttribute(declared[1] ?? '', 'prefix');
+  if (path === '' || (prefix !== null && prefix !== 'cwd')) {
+    return null;
+  }
+  return isAbsolute(path) ? path : join(process.cwd(), path);
+}
+
+/**
+ * Clears the cache directory `fonts.conf` declares, so every run indexes the font files as they
+ * stand. A cache left in place keeps the patterns an earlier run recorded, which makes the probe
+ * report on the cache instead of on the fonts: a font that was moved and put back fails, and a
+ * font that is gone can still pass. Returns the directory it cleared, or `null` for a configuration
+ * that declares no cachedir. This is the script's only destructive operation, so what it may remove
+ * is bounded here rather than trusted from the configuration: a declaration that resolves outside
+ * the checkout, or to the checkout itself, is refused instead of deleted.
+ */
+async function clearFontconfigCache(fontconfig: string): Promise<string | null> {
+  const declared = readFontconfigCacheDir((await readSource(fontconfig)).toString('utf8'));
+  if (declared === null) {
+    return null;
+  }
+  const root = resolve(process.cwd());
+  const cache = resolve(declared);
+  if (cache === root || !cache.startsWith(`${root}${sep}`)) {
+    throw new AssetError(
+      `the cache directory ${cache} that ${FONTCONFIG_FILE} declares is not a dedicated directory inside the repository root ${root}, so this script will not remove it: a cache it clears has to be a directory of its own inside the checkout, and a run that cannot clear its own cache cannot trust the font probe it reports.`,
+    );
+  }
+  try {
+    rmSync(cache, { recursive: true, force: true });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new AssetError(
+      `the fontconfig cache directory ${cache} cannot be removed, so this run's font probe would report on a cache carried over from an earlier run instead of on the fonts: ${reason}`,
+    );
+  }
+  return cache;
+}
+
 async function main(): Promise<void> {
   process.chdir(repositoryRoot());
 
@@ -466,6 +643,12 @@ async function main(): Promise<void> {
       `${FONTCONFIG_FILE} is missing (${fontconfig}), so the rasteriser would consult the host's fonts instead of the repository's own and the social image could not be trusted to be in the site's typeface.`,
     );
   }
+
+  // Start from a fresh cache, before the variable below is set and the rasteriser is loaded:
+  // fontconfig reads its configuration and its cache once per process, so a directory cleared
+  // after that point would already be the one in use.
+  const cacheDir = await clearFontconfigCache(fontconfig);
+
   process.env.FONTCONFIG_FILE = fontconfig;
 
   const sharp = await loadSharp();
@@ -482,11 +665,12 @@ async function main(): Promise<void> {
     { slot: textSlot, value: global.socialImage.text },
   ];
 
-  await assertFontsResolve(sharp, titleSlot.family);
+  await assertFontsResolve(sharp, titleSlot.family, cacheDir);
 
-  const socialImage = await rasterise(sharp, {
-    input: Buffer.from(composeSocialImage(template, canvas, placements), 'utf8'),
-  });
+  // Each string is wrapped by measuring the width the rasteriser draws, which the probe above has
+  // already proved is the site's own face; the composed markup is then rasterised at full size.
+  const composed = await composeSocialImage(sharp, template, canvas, placements);
+  const socialImage = await rasterise(sharp, { input: Buffer.from(composed, 'utf8') });
   assertSize(socialImage.info, SOCIAL_IMAGE_SIZE, OG_OUTPUT_FILE);
   await publish(OG_OUTPUT_FILE, socialImage.data);
   console.log(`${OG_OUTPUT_FILE}: ${socialImage.info.width}x${socialImage.info.height}`);

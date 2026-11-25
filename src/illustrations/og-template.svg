@@ -5,9 +5,9 @@
 
   Markers, each written with double braces and each the entire content of its own text element:
     - the title marker, the whole content of the element with id social-title and data-slot title,
-      replaced by the socialImageTitle field of src/content/global.ts;
+      replaced by the socialImage.title field of src/content/global.ts;
     - the text marker, the whole content of the element with id social-text and data-slot text,
-      replaced by the socialImageText field of src/content/global.ts.
+      replaced by the socialImage.text field of src/content/global.ts.
 
   Replacement rule: XML-escape the string (ampersand, less-than, greater-than, double quote, single
   quote); when the escaped string is wider than data-wrap-width at the declared font-size, wrap it

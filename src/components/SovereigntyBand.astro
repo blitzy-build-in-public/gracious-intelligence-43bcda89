@@ -1,0 +1,189 @@
+---
+/**
+ * The sovereignty band: the home page's second dark band, carrying A1's sovereignty copy on the
+ * Coffee Bean ground with `boundary.svg` where the reference puts a video plate (AAP 0.2.1,
+ * 0.2.4, 0.8.1).
+ *
+ * The reference's Video section is a single media plate at the page column's full width — 1340
+ * by 524 at the 1440 artboard and 358 by 179 at the 390 one, the plate centred in the page column
+ * and the column's own inset producing its position — containing one thing: a 72-pixel play disc
+ * with a 32-pixel cream triangle, 28 and 12 at the narrow width. It carries no text at all. The
+ * site keeps the plate and its proportions and removes the video with its control: rule B-1
+ * admits no embedded media, rule W-1 bars the template's own photograph, and AAP 0.8.1 states
+ * that this band "carries no video and no play control". What fills the plate is the authored
+ * `boundary` panel, the motif of linked nodes seen from outside the boundary line (AAP 0.2.4), so
+ * the band keeps the reference's rhythm without borrowing a pixel of it.
+ *
+ * Every string arrives as a prop and nothing here is typed: the heading, the one-line text, the
+ * three title-and-line items, the status label and the action all come from A1 through
+ * `home.band`, so this component cannot invent, shorten or paraphrase a claim (rules W-1, B-4).
+ *
+ * This is the darker of the two dark sections, and every ink inside it belongs to that ground.
+ * `.tone-inverse` in the theme sets Cream on the band and re-points the focus ring to Cream, and
+ * the plate's rules take `border-hairline-dark` — the Cream hairline the theme declares for
+ * exactly these two bands. The reference sets an item's line in its muted Khaki, and that ink is
+ * deliberately not carried here: Khaki is the theme's secondary ink on the Chocolate ground only,
+ * and on Coffee Bean it measures about 2.9:1, so rule B-3 denies it any text role on this ground.
+ * Cream is therefore the band's only ink, at 7.25:1, and the hierarchy between an item's title
+ * and its line rests on size and weight together — which is what keeps both of them legible
+ * rather than one of them merely quiet.
+ *
+ * One server-rendered `<section>` and no more: no script, no island, no framework import, no
+ * image, video or frame element, and no request of any kind (rules B-1, W-2). The component is
+ * not interactive, so the only focusable element inside it is the action the caller passes, and
+ * the underline and focus states it shows are the theme's own.
+ */
+import Button from './Button.astro';
+import IllustrationPanel from './IllustrationPanel.astro';
+import StatusLabel from './StatusLabel.astro';
+
+import type { Item, Link } from '../content/global.ts';
+
+interface Props {
+  /** A1's band heading, exactly as the content layer writes it and in its own case. */
+  heading: string;
+  /** A1's one-line text beneath the heading. */
+  text: string;
+  /** A1's three title-and-line pairs. Each becomes one column at the wide width. */
+  items: Item[];
+  /** The label that qualifies the band's claim — A0's design-intent string (AAP 0.7.5). */
+  statusLabel: string;
+  /** The band's one control, a same-site link from the eight routes. */
+  action: Link;
+}
+
+const { heading, text, items, statusLabel, action } = Astro.props;
+
+/**
+ * The band's ground and its ink. `bg-bg-coffee` is the Coffee Bean token, the darker of the two
+ * grounds the site uses for a band, and `tone-inverse` is the theme's own rule for it: Cream for
+ * everything inside, and the Cream focus ring rather than the Chocolate one, which is invisible on
+ * this ground (AAP 0.6.3, 0.6.4).
+ */
+const BAND = 'bg-bg-coffee tone-inverse';
+
+/**
+ * The content column and the band's vertical breathing room. `.content` centres the column and
+ * caps it at the design's 1344-pixel width inside the 48-pixel wide inset, so the plate below
+ * never stretches past the artboard on a large display (AAP 0.8.4, PA-1). The wide padding is the
+ * 160 the reference leaves either side of its plate; the narrow step is the 60 the build's section
+ * rhythm drops to (AAP 0.2.1, 0.8.4).
+ */
+const LAYOUT = 'content py-60 wide:py-160';
+
+/**
+ * The plate. The reference draws it at the column's full width with two authored proportions —
+ * 358 by 179, exactly 2:1, at the 390 artboard, and 1340 by 524, about 2.56:1, at the 1440 one —
+ * so the ratio is stated per width rather than fixed, and the `wide` step comes from the theme's
+ * single 900-pixel breakpoint (PA-5). A ratio is the one shape token the manifest cannot express
+ * on the 4-pixel spacing grid, so it is carried as the design's own proportion rather than being
+ * snapped to a height; no length is written here. `radius-panel` and `overflow-hidden` clip the
+ * drawing to the plate's 8-pixel corners (AAP 0.2.2, 0.6.3).
+ */
+const PLATE = 'overflow-hidden rounded-panel aspect-[2/1] wide:aspect-[1340/524]';
+
+/**
+ * The heading's rungs, largest first (AAP 0.2.2, 0.6.3). The band's heading starts at
+ * `type-heading-1` — Urbanist 500, 32 at the narrow width and 80 at the wide one, leading 1.1 —
+ * and steps down a rung of the same ladder when the copy needs more lines than the reference
+ * gives a section heading. No size between rungs is ever invented, and the smallest rung admits
+ * every string.
+ */
+const LADDER = ['type-heading-1', 'type-heading-2', 'type-heading-3'] as const;
+
+/**
+ * The measure, in characters, each rung sets inside a three-line budget: one more line than the
+ * longest heading the reference draws, at an average advance of about half the type size in
+ * Urbanist 500, in the narrower of the two columns — 358 / (0.52 × 32) ≈ 21 a line at the
+ * 32-pixel step (64 in three), and ≈ 28 a line at the 24-pixel step (86 in three). The narrow
+ * step governs, because one heading has to fit at both widths. The last rung is unbounded so the
+ * ladder can never be exhausted.
+ */
+const BUDGET: Record<(typeof LADDER)[number], number> = {
+  'type-heading-1': 64,
+  'type-heading-2': 86,
+  'type-heading-3': Number.POSITIVE_INFINITY,
+};
+
+/** The largest rung whose line budget holds this heading. */
+const HEADING_RUNG =
+  LADDER.find((rung) => heading.trim().length <= BUDGET[rung]) ?? LADDER[LADDER.length - 1];
+
+/**
+ * The heading in Cream — inherited from `tone-inverse` — with `text-balance`, so a heading that
+ * wraps shares its lines out evenly instead of leaving one word alone on the last of them.
+ */
+const HEADING = `${HEADING_RUNG} text-balance`;
+
+/**
+ * The band's one-line text on the intro rung: Urbanist 400, 14 at the narrow width and 24 at the
+ * wide one, leading 1.5 (AAP 0.2.2). Ink is inherited, as above.
+ */
+const TEXT = 'type-body-2 mt-16 wide:mt-24';
+
+/**
+ * The plate to the heading: the block gap the reference's own sections use, 40 at the narrow
+ * width and 56 at the wide one.
+ */
+const HEADING_GAP = 'mt-40 wide:mt-56';
+
+/**
+ * The three items: one column at the narrow width and three across at the wide one, on the
+ * reference's gaps — a 40-pixel gutter between columns, the gutter its card grid uses (AAP 0.2.1,
+ * 0.8.1), stepping to 32 once the row stacks, which follows the band's own narrowing rhythm. The
+ * list is a real `<ul>`, so the group is announced as a list of three and the reading order
+ * matches the visual one.
+ */
+const LIST = 'grid gap-32 wide:grid-cols-3 wide:gap-40 mt-32 wide:mt-40';
+
+/**
+ * One item. Its Cream hairline is the rule the reference draws under every block and row on its
+ * dark ground — `border-hairline-dark` is the theme's token for precisely that — and the padding
+ * lifts the rule clear of the text rather than letting it sit on the descenders.
+ */
+const ITEM = 'border-hairline-dark pb-24 wide:pb-32';
+
+/** An item's title: Urbanist 600, 16 at the narrow width and 20 at the wide one, leading 1.2. */
+const ITEM_TITLE = 'type-heading-5';
+
+/**
+ * An item's line: Urbanist 400, 10 at the narrow width and 16 at the wide one, leading 1.5, on
+ * the reference's 4-pixel gap to its title at the narrow width and 8 at the wide one.
+ */
+const ITEM_LINE = 'type-body-3 mt-4 wide:mt-8';
+
+/**
+ * The band's closing row: the label that qualifies the claim beside the action that follows it.
+ * They sit on one line with the label first in reading order and the control at the row's end at
+ * the wide width, and they wrap onto two lines rather than overflowing at the narrow one. The
+ * cross-axis alignment follows the reference's own label-and-action rows, which end-align their
+ * small mono label with the taller control beside it; a wrapped row keeps them centred instead,
+ * where the two no longer share an edge to sit on.
+ */
+const FOOTER =
+  'mt-40 wide:mt-56 flex flex-wrap items-center justify-between gap-24 wide:items-end wide:gap-40';
+---
+
+<section class={BAND}>
+  <div class={LAYOUT}>
+    <div class={PLATE}>
+      <IllustrationPanel variant="boundary" />
+    </div>
+    <h2 class={`${HEADING} ${HEADING_GAP}`}>{heading}</h2>
+    <p class={TEXT}>{text}</p>
+    <ul class={LIST}>
+      {
+        items.map((item) => (
+          <li class={ITEM}>
+            <h3 class={ITEM_TITLE}>{item.title}</h3>
+            <p class={ITEM_LINE}>{item.line}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <div class={FOOTER}>
+      <StatusLabel text={statusLabel} tone="inverse" />
+      <Button label={action.label} href={action.href} tone="inverse" />
+    </div>
+  </div>
+</section>

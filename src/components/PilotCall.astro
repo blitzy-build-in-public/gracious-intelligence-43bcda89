@@ -1,0 +1,91 @@
+---
+/**
+ * The pilot call that closes `/about`: the heading A5 gives it, its one text line and the enquiry
+ * action, set where the design reference holds its "Become a Model" block (AAP 0.8.1, 0.8.4).
+ *
+ * The reference block is a bracketed mono label, a right-aligned display heading, four numbered
+ * step rows closed by hairlines and, at the wide width only, a portrait photograph (AAP 0.2.1).
+ * Nothing in it below the heading has an entry in A5, so the label, the four rows, their rules and
+ * the photograph are removed rather than filled with invented copy (rule W-1, rule B-4), and the
+ * block carries the three pieces the plan declares: the heading, its one text line and the action.
+ * That removal is why this component is three elements and not seven — a later reader must not
+ * "complete" it by restoring the rows, and no numeral is rendered anywhere in it, so the rows
+ * cannot return as an invented "step 1 of 4" (rule B-4).
+ *
+ * Every string arrives as a prop — the heading, the text line, and the action's label and target —
+ * so the component holds no copy of its own, borrows none from the design file and invents none
+ * (rule W-1, rule B-4).
+ *
+ * The heading is a section heading and never the page's `h1`: `/about`'s single `h1` is its
+ * page-top headline, so this block opens with an `h2` and the page keeps one `h1` and a sequential
+ * outline (rule B-3).
+ *
+ * Presentation is the system's, not the block's. `.content` is the page's content column — 1344
+ * wide inside the theme's 48 unit insets, 358 inside its 16 at the narrow one (AAP 0.8.4, PA-1) —
+ * and `.type-heading-1` with `.type-body-2` are the design's own type steps, each carrying its
+ * Mobile and Desktop rung from the theme's 900 breakpoint (AAP 0.2.2, PA-5). The heading takes the
+ * rung the reference draws it in: `Desktop/Heading/Heading 1` at 80 over 88 and
+ * `Mobile/Heading/Heading 1` at 32 over 35.2 is `text-heading-1` exactly, not the larger
+ * `text-display-2` the promotional band reserves (AAP 0.2.2, 0.6.3). It is right-aligned at both
+ * widths, which is how the reference places it at 1440 — a hug-width box parked on the column's
+ * right edge — and at 390, where it is declared right-aligned with both lines flush to that edge.
+ * `text-end` states that once, in the writing mode's own terms rather than a physical side, so a
+ * right-to-left rendering of the page would mirror it correctly.
+ *
+ * Ink is the page's own: Chocolate for the heading (17.08:1 on Cream) and Taupe, the palette's
+ * secondary ink, for the text line (9.40:1). Both are set here rather than inherited, so neither
+ * contrast depends on the ground a composer happens to give the block (rule B-3). Nothing sets a
+ * fill, border, radius or shadow: the reference draws no card, plate or rule inside this block, and
+ * the design system declares no elevation (AAP 0.2.2).
+ *
+ * The block is static markup — no script, no island, no framework import and no request (rules B-1,
+ * W-2) — so it renders in full with scripts disabled. Its only interactive element is the action,
+ * rendered by `Button` in its `default` tone for the Cream ground (Chocolate plate, Cream label,
+ * 17.08:1), which keeps the theme's `:focus-visible` ring, its 24x24 minimum target and its
+ * keyboard operability without anything being added here (rules B-3, B-4).
+ */
+
+import Button from './Button.astro';
+import type { Link } from '../content/global.ts';
+
+interface Props {
+  /** A5's pilot-call heading, exactly as the content layer writes it and in its own case. */
+  heading: string;
+  /** A5's one text line for the call, rendered whole and never re-shaped here. */
+  text: string;
+  /** The enquiry action: its label is its visible text and its `href` a same-site route (rule B-1). */
+  action: Link;
+}
+
+const { heading, text, action } = Astro.props;
+
+/**
+ * The block's geometry: the page's content column, and the vertical rhythm the reference gives the
+ * band — `space-80` above and below at the wide width, `space-60` above and `space-96` below at the
+ * narrow one, where the footer that follows is set tighter. It is a column with one `space-40` gap
+ * between its three children, so the space between heading, text and action comes from the layout
+ * rather than from margins on the elements themselves. The wide steps come from the theme's
+ * `--breakpoint-wide` token through Tailwind's `wide:` variant, the same declaration the theme's
+ * own media query reads, so the 900 breakpoint has one source (PA-5).
+ */
+const LAYOUT =
+  'content flex flex-col items-start gap-40 pt-60 pb-96 wide:pt-80 wide:pb-80';
+
+/**
+ * The heading's rung, alignment and ink: the display style the reference draws this block in, right
+ * on the column at both widths, in the page's primary ink. `self-stretch` is what lets the right
+ * alignment act across the whole column, and `text-balance` shares the lines evenly when the copy
+ * wraps — the reference's own 390 setting wraps, so wrapping is the designed behaviour and no
+ * truncation, clamp or size below the smallest rung is reached for.
+ */
+const HEADING = 'type-heading-1 self-stretch text-end text-balance text-ink-chocolate';
+
+/** The text line's rung and ink: the design's intro body step, in the palette's secondary ink. */
+const TEXT = 'type-body-2 self-stretch text-ink-taupe';
+---
+
+<section class={LAYOUT}>
+  <h2 class={HEADING}>{heading}</h2>
+  <p class={TEXT}>{text}</p>
+  <Button href={action.href} label={action.label} />
+</section>

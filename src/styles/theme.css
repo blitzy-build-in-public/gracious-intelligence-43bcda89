@@ -1,0 +1,594 @@
+@import "tailwindcss";
+
+/*
+ * The project's only token definition (AAP 0.6.1, 0.6.6). Every colour, type step,
+ * spacing step, radius, border and focus value is declared here once, and every rule in
+ * this file consumes those declarations through var() or through the utility Tailwind
+ * derives from them. No other file may state a value.
+ *
+ * Declared `static` so the whole set reaches :root even where the only consumer is the
+ * breakpoint block below, which re-points the type size tokens rather than restating them.
+ */
+@theme static {
+  /*
+   * The default palette is replaced, not extended: the design admits no neutral, grey or
+   * gradient token (AAP 0.2.2), so clearing the namespace is what makes an undeclared
+   * colour impossible to reach rather than merely unused.
+   */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /*
+   * Colour roles follow contrast on the ground each one sits on (AAP 0.2.2, 0.6.3).
+   * Cream is the page ground and Chocolate the ink, so Khaki and Chestnut decorate lines
+   * and dots only there (2.51:1 and 2.74:1): neither ever carries text or a control
+   * border on Cream. Khaki is secondary ink on Chocolate alone (6.80:1), and Taupe is a
+   * control boundary on Cream (9.40:1) only.
+   */
+  --color-bg-cream: #FFF2E4;
+  --color-bg-chocolate: #1D0E03;
+  --color-bg-coffee: #664B39;
+  --color-ink-chocolate: #1D0E03;
+  --color-ink-taupe: #4A3E34;
+  --color-ink-coffee: #664B39;
+  --color-ink-cream: #FFF2E4;
+  --color-khaki: #A8998A;
+  --color-decoration-chestnut: #C8864A;
+  --color-status-critical: #9B1C1C;
+  --color-status-success: #1F6B3A;
+
+  /*
+   * Two families, each with the metric-adjacent fallback the design reference rules name
+   * (AAP 0.6.6), so a font that fails to load degrades in weight and rhythm instead of in
+   * layout. The families are self-hosted below; nothing is fetched (rule B-1).
+   */
+  --font-*: initial;
+  --font-urbanist: Urbanist, system-ui, "Segoe UI", sans-serif;
+  --font-geist-mono:
+    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /*
+   * The fifteen type steps (AAP 0.2.2). The Mobile step is the base value and the
+   * `-desktop` member the pair's other step, applied from the 900px block lower down, so a
+   * slot changes size only by stepping between these declarations and never by a size
+   * invented between them. Leading is the design's own: `normal` where the design records
+   * automatic leading, the ratio where it records one.
+   *
+   * `display-1` measures 80px at both widths, so it carries no desktop member and no
+   * re-point — the same value declared twice would be two definitions of one step.
+   */
+  --text-*: initial;
+
+  --text-display-1: 80px;
+  --text-display-1--line-height: normal;
+  --text-display-1--font-weight: 600;
+  --text-display-1--letter-spacing: normal;
+
+  --text-display-2: 32px;
+  --text-display-2--line-height: 1;
+  --text-display-2--font-weight: 500;
+  --text-display-2--letter-spacing: normal;
+  --text-display-2-desktop: 96px;
+
+  --text-heading-1: 32px;
+  --text-heading-1--line-height: 1.1;
+  --text-heading-1--font-weight: 500;
+  --text-heading-1--letter-spacing: normal;
+  --text-heading-1-desktop: 80px;
+
+  --text-heading-2: 24px;
+  --text-heading-2--line-height: 1.1;
+  --text-heading-2--font-weight: 500;
+  --text-heading-2--letter-spacing: normal;
+  --text-heading-2-desktop: 48px;
+
+  --text-heading-3: 20px;
+  --text-heading-3--line-height: 1.1;
+  --text-heading-3--font-weight: 500;
+  --text-heading-3--letter-spacing: normal;
+  --text-heading-3-desktop: 40px;
+
+  --text-heading-4: 20px;
+  --text-heading-4--line-height: 1.1;
+  --text-heading-4--font-weight: 500;
+  --text-heading-4--letter-spacing: normal;
+  --text-heading-4-desktop: 36px;
+
+  --text-heading-5: 16px;
+  --text-heading-5--line-height: 1.2;
+  --text-heading-5--font-weight: 600;
+  --text-heading-5--letter-spacing: normal;
+  --text-heading-5-desktop: 20px;
+
+  --text-heading-6: 14px;
+  --text-heading-6--line-height: 1.2;
+  --text-heading-6--font-weight: 600;
+  --text-heading-6--letter-spacing: normal;
+  --text-heading-6-desktop: 16px;
+
+  --text-body-1: 16px;
+  --text-body-1--line-height: 1.5;
+  --text-body-1--font-weight: 400;
+  --text-body-1--letter-spacing: normal;
+  --text-body-1-desktop: 32px;
+
+  --text-body-2: 14px;
+  --text-body-2--line-height: 1.5;
+  --text-body-2--font-weight: 400;
+  --text-body-2--letter-spacing: normal;
+  --text-body-2-desktop: 24px;
+
+  --text-body-3: 10px;
+  --text-body-3--line-height: 1.5;
+  --text-body-3--font-weight: 400;
+  --text-body-3--letter-spacing: normal;
+  --text-body-3-desktop: 16px;
+
+  /* The Mobile group defines only three body steps, so 4 and 5 share its smallest. */
+  --text-body-4: 10px;
+  --text-body-4--line-height: 1.5;
+  --text-body-4--font-weight: 400;
+  --text-body-4--letter-spacing: normal;
+  --text-body-4-desktop: 14px;
+
+  --text-body-5: 10px;
+  --text-body-5--line-height: 1.5;
+  --text-body-5--font-weight: 400;
+  --text-body-5--letter-spacing: normal;
+  --text-body-5-desktop: 12px;
+
+  --text-button-1: 12px;
+  --text-button-1--line-height: normal;
+  --text-button-1--font-weight: 500;
+  --text-button-1--letter-spacing: normal;
+  --text-button-1-desktop: 16px;
+
+  --text-button-2: 10px;
+  --text-button-2--line-height: normal;
+  --text-button-2--font-weight: 500;
+  --text-button-2--letter-spacing: normal;
+  --text-button-2-desktop: 12px;
+  --text-button-2-desktop--font-weight: 400;
+
+  /*
+   * The spacing scale is the design's own 4px-grid steps and nothing else, so the base
+   * multiplier is cleared too: an undeclared step then generates no utility at all
+   * (AAP 0.2.2, PA-1).
+   */
+  --spacing: initial;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
+  --spacing-60: 60px;
+  --spacing-64: 64px;
+  --spacing-72: 72px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-116: 116px;
+  --spacing-120: 120px;
+  --spacing-136: 136px;
+  --spacing-160: 160px;
+  --spacing-180: 180px;
+  --spacing-240: 240px;
+
+  --radius-*: initial;
+  --radius-control: 2px;
+  --radius-media: 4px;
+  --radius-panel: 8px;
+  --radius-full: 9999px;
+
+  /*
+   * The three borders the design draws, as complete shorthands. Each is 1px: the design's
+   * sub-pixel strokes do not render consistently, so they take the whole pixel (AAP 0.6.3).
+   * A field edge is Taupe rather than Khaki because Khaki cannot identify a control on Cream.
+   */
+  --border-hairline: 1px solid var(--color-khaki);
+  --border-hairline-dark: 1px solid var(--color-ink-cream);
+  --border-input: 1px solid var(--color-ink-taupe);
+
+  /* The design draws no shadow, blur or elevation anywhere, so none exists to consume. */
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+
+  /*
+   * Values with no place on the spacing scale, declared here so that no rule needs a
+   * literal: the content column (the 1440 design width less its two 48px insets, PA-1),
+   * and the focus ring B-3 requires at 2px with a 2px offset (AAP 0.6.4).
+   */
+  --container-content: 1344px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+/*
+ * Both families are served from this origin, as variable files covering every weight the
+ * scale uses, so no weight needs a second file and nothing is requested from a third party
+ * (rule B-1). The Latin range covers the letters, the curly quotes and the dashes the copy
+ * uses; a glyph outside it falls back rather than rendering blank.
+ */
+@font-face {
+  font-family: "Urbanist";
+  src: url("/fonts/urbanist-latin-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-latin-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * One class per type step, each composing only the tokens above, so no component ever
+ * writes a family, a size, a leading or a weight of its own (AAP 0.8.1). They live in the
+ * components layer so a Tailwind utility can still override one deliberately.
+ */
+@layer components {
+  .type-display-1,
+  .type-display-2,
+  .type-heading-1,
+  .type-heading-2,
+  .type-heading-3,
+  .type-heading-5,
+  .type-heading-6,
+  .type-body-1,
+  .type-body-2,
+  .type-body-3,
+  .type-body-4,
+  .type-body-5 {
+    font-family: var(--font-urbanist);
+  }
+
+  .type-heading-4,
+  .type-button-1,
+  .type-button-2 {
+    font-family: var(--font-geist-mono);
+  }
+
+  .type-display-1 {
+    font-size: var(--text-display-1);
+    line-height: var(--text-display-1--line-height);
+    font-weight: var(--text-display-1--font-weight);
+    letter-spacing: var(--text-display-1--letter-spacing);
+  }
+  .type-display-2 {
+    font-size: var(--text-display-2);
+    line-height: var(--text-display-2--line-height);
+    font-weight: var(--text-display-2--font-weight);
+    letter-spacing: var(--text-display-2--letter-spacing);
+  }
+  .type-heading-1 {
+    font-size: var(--text-heading-1);
+    line-height: var(--text-heading-1--line-height);
+    font-weight: var(--text-heading-1--font-weight);
+    letter-spacing: var(--text-heading-1--letter-spacing);
+  }
+  .type-heading-2 {
+    font-size: var(--text-heading-2);
+    line-height: var(--text-heading-2--line-height);
+    font-weight: var(--text-heading-2--font-weight);
+    letter-spacing: var(--text-heading-2--letter-spacing);
+  }
+  .type-heading-3 {
+    font-size: var(--text-heading-3);
+    line-height: var(--text-heading-3--line-height);
+    font-weight: var(--text-heading-3--font-weight);
+    letter-spacing: var(--text-heading-3--letter-spacing);
+  }
+  .type-heading-4 {
+    font-size: var(--text-heading-4);
+    line-height: var(--text-heading-4--line-height);
+    font-weight: var(--text-heading-4--font-weight);
+    letter-spacing: var(--text-heading-4--letter-spacing);
+  }
+  .type-heading-5 {
+    font-size: var(--text-heading-5);
+    line-height: var(--text-heading-5--line-height);
+    font-weight: var(--text-heading-5--font-weight);
+    letter-spacing: var(--text-heading-5--letter-spacing);
+  }
+  .type-heading-6 {
+    font-size: var(--text-heading-6);
+    line-height: var(--text-heading-6--line-height);
+    font-weight: var(--text-heading-6--font-weight);
+    letter-spacing: var(--text-heading-6--letter-spacing);
+  }
+  .type-body-1 {
+    font-size: var(--text-body-1);
+    line-height: var(--text-body-1--line-height);
+    font-weight: var(--text-body-1--font-weight);
+    letter-spacing: var(--text-body-1--letter-spacing);
+  }
+  .type-body-2 {
+    font-size: var(--text-body-2);
+    line-height: var(--text-body-2--line-height);
+    font-weight: var(--text-body-2--font-weight);
+    letter-spacing: var(--text-body-2--letter-spacing);
+  }
+  .type-body-3 {
+    font-size: var(--text-body-3);
+    line-height: var(--text-body-3--line-height);
+    font-weight: var(--text-body-3--font-weight);
+    letter-spacing: var(--text-body-3--letter-spacing);
+  }
+  .type-body-4 {
+    font-size: var(--text-body-4);
+    line-height: var(--text-body-4--line-height);
+    font-weight: var(--text-body-4--font-weight);
+    letter-spacing: var(--text-body-4--letter-spacing);
+  }
+  .type-body-5 {
+    font-size: var(--text-body-5);
+    line-height: var(--text-body-5--line-height);
+    font-weight: var(--text-body-5--font-weight);
+    letter-spacing: var(--text-body-5--letter-spacing);
+  }
+  .type-button-1 {
+    font-size: var(--text-button-1);
+    line-height: var(--text-button-1--line-height);
+    font-weight: var(--text-button-1--font-weight);
+    letter-spacing: var(--text-button-1--letter-spacing);
+  }
+  .type-button-2 {
+    font-size: var(--text-button-2);
+    line-height: var(--text-button-2--line-height);
+    font-weight: var(--text-button-2--font-weight);
+    letter-spacing: var(--text-button-2--letter-spacing);
+  }
+}
+
+/*
+ * The design declares two artboard widths and no breakpoint, so the step from Mobile to
+ * Desktop sizes begins at the plan's own breakpoint (PA-5). The tokens are re-pointed
+ * rather than the classes, so one value still has one definition and both the .type-*
+ * classes and Tailwind's text-<step> utilities change together.
+ */
+@media (min-width: 900px) {
+  :root {
+    --text-display-2: var(--text-display-2-desktop);
+    --text-heading-1: var(--text-heading-1-desktop);
+    --text-heading-2: var(--text-heading-2-desktop);
+    --text-heading-3: var(--text-heading-3-desktop);
+    --text-heading-4: var(--text-heading-4-desktop);
+    --text-heading-5: var(--text-heading-5-desktop);
+    --text-heading-6: var(--text-heading-6-desktop);
+    --text-body-1: var(--text-body-1-desktop);
+    --text-body-2: var(--text-body-2-desktop);
+    --text-body-3: var(--text-body-3-desktop);
+    --text-body-4: var(--text-body-4-desktop);
+    --text-body-5: var(--text-body-5-desktop);
+    --text-button-1: var(--text-button-1-desktop);
+    --text-button-2: var(--text-button-2-desktop);
+    --text-button-2--font-weight: var(--text-button-2-desktop--font-weight);
+  }
+
+  /* The content cap inside the wide inset: --container-content within --spacing-48. */
+  .content {
+    padding-inline: var(--spacing-48);
+    max-inline-size: calc(var(--container-content) + 2 * var(--spacing-48));
+  }
+
+  .value-items > li::before {
+    inline-size: var(--spacing-96);
+  }
+}
+
+@layer base {
+  /*
+   * The page ground and its ink are stated once here (AAP 0.8.4), and the colour scheme is
+   * pinned to light so no user-agent dark default can invert them; a dark theme is out of
+   * scope (AAP 0.11.2).
+   */
+  html {
+    background-color: var(--color-bg-cream);
+    color: var(--color-ink-chocolate);
+    font-family: var(--font-urbanist);
+    color-scheme: light;
+    /* A long unbroken word must wrap rather than widen the page at the narrowest widths. */
+    overflow-wrap: break-word;
+  }
+
+  /*
+   * WCAG 2.2's target-size minimum binds standalone controls, so they are held at 24 by 24.
+   * A link inside a sentence is exempt (SC 2.5.8), and lifting it to the minimum would break
+   * the paragraph's rhythm, which is why the rules below name the controls and the
+   * link-shaped ones instead of every anchor.
+   */
+  button,
+  [role="button"],
+  summary,
+  input,
+  select,
+  textarea {
+    min-block-size: var(--spacing-24);
+    min-inline-size: var(--spacing-24);
+  }
+
+  /*
+   * A link is a control when it is navigation, when it carries the upper-case mono face the
+   * navigation and button faces use, or when it is a list item's own content. A minimum only
+   * binds a box, so these three are given one, and a component that lays such a link out
+   * differently overrides the display with its own utility.
+   */
+  nav a[href],
+  li > a[href],
+  a[href].mono-uppercase {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--spacing-24);
+    min-inline-size: var(--spacing-24);
+  }
+
+  /*
+   * The mono upper case belongs to the presentation, not to the copy (AAP 0.6.6): the
+   * strings in the content layer stay exactly as the specification writes them, and only
+   * the labels, the navigation and the button faces take this class. It stops short of the
+   * type steps because those also set captions and mono meta lines, which are not cased.
+   */
+  .mono-uppercase {
+    text-transform: uppercase;
+  }
+
+  /*
+   * The bracket around an eyebrow is drawn, not typed (AAP 0.2.3, 0.6.6), so the DOM holds
+   * the word alone and its colour comes from whatever tone the surrounding block sets.
+   */
+  .eyebrow::before {
+    content: "[";
+    margin-inline-end: var(--spacing-8);
+  }
+
+  .eyebrow::after {
+    content: "]";
+    margin-inline-start: var(--spacing-8);
+  }
+
+  /*
+   * The ordinal on a value item is counted from the item's position (AAP 0.2.3), so no
+   * numeral enters the content layer.
+   */
+  .value-items {
+    counter-reset: value-item;
+  }
+
+  .value-items > li {
+    counter-increment: value-item;
+  }
+
+  .value-items > li::before {
+    content: "[" counter(value-item, decimal-leading-zero) "]";
+    display: block;
+    inline-size: var(--spacing-56);
+    margin-block-end: var(--spacing-16);
+    font-family: var(--font-geist-mono);
+    font-size: var(--text-heading-4);
+    line-height: var(--text-heading-4--line-height);
+    font-weight: var(--text-heading-4--font-weight);
+  }
+
+  /*
+   * The skip link is the first focusable element on every page and has to be reachable
+   * before it is visible: it keeps its place in the accessibility tree, sits off the top of
+   * the viewport, and comes back into it the moment it holds focus (rule B-3).
+   */
+  .skip-link {
+    position: absolute;
+    inset-block-start: var(--spacing-8);
+    inset-inline-start: var(--spacing-8);
+    padding-block: var(--spacing-12);
+    padding-inline: var(--spacing-24);
+    background-color: var(--color-bg-cream);
+    color: var(--color-ink-chocolate);
+    border: var(--border-input);
+    border-radius: var(--radius-control);
+    transform: translateY(calc(-1 * var(--spacing-96)));
+  }
+
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  /*
+   * The content column: --container-content within --spacing-16 at the narrow width and
+   * within --spacing-48 at the wide one, that same width centred however much wider the
+   * viewport gets, and no horizontal scroll at the narrowest reflow width (AAP 0.8.4, PA-1).
+   */
+  .content {
+    inline-size: 100%;
+    margin-inline: auto;
+    padding-inline: var(--spacing-16);
+    max-inline-size: calc(var(--container-content) + 2 * var(--spacing-16));
+  }
+
+  /*
+   * The three rules the design draws: a hairline between sections, rows and cards, its Cream
+   * counterpart inside the two dark bands, and the Taupe edge that identifies a field.
+   */
+  .border-hairline {
+    border-block-end: var(--border-hairline);
+  }
+
+  .border-hairline-dark {
+    border-block-end: var(--border-hairline-dark);
+  }
+
+  .border-input {
+    border-block-end: var(--border-input);
+  }
+
+  /*
+   * The current navigation item is marked by an underline as well as by aria-current, so the
+   * state never rests on colour or decoration alone (AAP 0.6.4).
+   */
+  .nav-current {
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: var(--spacing-4);
+  }
+
+  /*
+   * Both focus indicators are defined here once (rule B-3, AAP 0.6.4). The Chocolate ring
+   * reads at 17.08:1 on the Cream ground. On the two dark bands the Cream ring reads at
+   * 17.08:1 against Chocolate and 7.25:1 against Coffee Bean, and it sits outside the
+   * button it belongs to, so it reads against the band rather than the button's own fill.
+   * Pointer focus stays clean; keyboard focus never is.
+   */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-ink-chocolate);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /*
+   * The tone the two dark bands set: Cream ink for everything inside them, and the Cream
+   * focus ring in place of the Chocolate one.
+   */
+  .tone-inverse {
+    color: var(--color-ink-cream);
+  }
+
+  .tone-inverse :focus-visible {
+    outline-color: var(--color-ink-cream);
+  }
+}
+
+/*
+ * Nothing on the site needs to move, and a reader who has asked for less of it gets none:
+ * every animation and transition stops, and scrolling jumps instead of gliding (rule B-3).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

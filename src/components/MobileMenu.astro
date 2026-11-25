@@ -3,13 +3,22 @@
  * The mobile navigation island: the burger trigger and the five global navigation links it
  * collapses (AAP 0.8.1, 0.8.4, rule W-2).
  *
- * The server HTML is the complete, readable menu. The list ships visible, so a reader without
- * JavaScript — or one whose script has not run yet — gets a plain list of the five links and
- * follows them like any other anchor; the module script at the foot of this file then collapses
- * that list behind the trigger and keeps the two states in step. That ordering is the whole
- * reason the island is safe, and it is why the trigger itself ships with the `hidden` attribute
- * and is revealed last: a button that cannot yet act is never on screen, so no reader meets a
- * control that does nothing (rule B-4).
+ * Two renderings of one list, and the pair is what keeps the menu safe in both states. The list the
+ * trigger drives ships **collapsed** — `hidden` in the server's own markup — and a `<noscript>` copy
+ * beside it holds the readable list for a reader with no script at all. Shipping the interactive
+ * list collapsed is what keeps the page still: collapsing a list that had been painted shifted the
+ * whole document by a measured 0.28 Cumulative Layout Shift on every mobile load (the header fell
+ * from 324 px to 71 px after first paint), which the performance floor WT-18 sets cannot absorb, and
+ * no inline script may close that gap because the content security policy forbids inline execution
+ * (AAP 0.4.5) — an `is:inline` attempt is blocked by the built policy and costs the best-practices
+ * category two points. The `<noscript>` copy keeps the promise the interactive list cannot: a reader
+ * without JavaScript still gets the five links, un-collapsed and followable, in the header where the
+ * menu sits.
+ *
+ * The trigger ships with the `hidden` attribute and the module script at the foot of this file
+ * reveals it last, after the list's state and the trigger's behaviour are wired, so a button that
+ * cannot yet act is never on screen (rule B-4); with scripts unavailable it is never revealed at all
+ * and the `<noscript>` list is the navigation the header offers.
  *
  * The five labels are copy, so they arrive as `nav` from `src/content/global.ts`, which the
  * header, the footer and this menu share as one definition (A-4). The trigger's two names
@@ -135,7 +144,7 @@ const NAME = 'sr-only';
       <span class={NAME} data-mobile-menu-close hidden>{labels.close}</span>
     </button>
   </div>
-  <ul id={LIST_ID} class={LIST} data-mobile-menu-list>
+  <ul id={LIST_ID} class={LIST} data-mobile-menu-list hidden>
     {
       nav.map((item) => {
         const isCurrent = current !== undefined && item.href === current;
@@ -154,6 +163,27 @@ const NAME = 'sr-only';
       })
     }
   </ul>
+  <noscript>
+    <ul class={LIST}>
+      {
+        nav.map((item) => {
+          const isCurrent = current !== undefined && item.href === current;
+
+          return (
+            <li class={ITEM}>
+              <a
+                class={isCurrent ? `${LINK} nav-current` : LINK}
+                href={item.href}
+                aria-current={isCurrent ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </noscript>
 </nav>
 
 <script>

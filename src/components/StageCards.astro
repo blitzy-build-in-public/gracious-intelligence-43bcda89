@@ -1,0 +1,208 @@
+---
+/**
+ * The four stage cards, and the one rule that decides what a card is: a card with an `href` is a
+ * link, and a card without one is a static block (AAP 0.2.1, 0.2.3, 0.8.1).
+ *
+ * Only the first stage has a page of its own, so the content layer gives `href` to card 01 alone.
+ * The affordance the design reference draws for a linked card — a circular plate carrying an
+ * up-right arrow, revealed over the media — is rendered only where `href` exists, which is what
+ * makes cards 02–04 visibly static rather than controls that lead nowhere (rule B-4, WT-17). A
+ * static card therefore contains no `<a>`, no tab stop and no plate: nothing in it can be focused
+ * or clicked, and nothing in it looks as though it could be.
+ *
+ * Every string arrives as a prop from `src/content/shared/stages.ts`, so the component holds no
+ * copy of its own (rule W-1): the card's number, name, line and status label are rendered exactly
+ * as the content layer writes them. The four panels are the illustrations authored for this
+ * project, inlined through `IllustrationPanel` (rule B-1) — no photograph, logo or name comes from
+ * the design reference, whose photographic slots these panels replace (rule W-1, AAP 0.2.4). The
+ * arrow is Phosphor's glyph from the installed package through `Icon`, also inlined, so nothing is
+ * fetched and no third-party host is contacted (rule B-1).
+ *
+ * It is not an island (rule W-2): the plate is revealed by CSS alone — `group-hover` and
+ * `group-focus-within` over the card's own link — so the component ships no script, no framework
+ * import and no hydration directive, and every card renders and reads with scripting disabled.
+ */
+
+import type { StageCard } from '../content/shared/stages.ts';
+
+import Icon from './Icon.astro';
+import IllustrationPanel from './IllustrationPanel.astro';
+import StatusLabel from './StatusLabel.astro';
+
+interface Props {
+  /**
+   * The four stage cards, in the order the content specification sets them out. Exactly four: the
+   * panels are mapped to card position, so the set and the illustrations have to agree.
+   */
+  cards: StageCard[];
+  /**
+   * The grid the cards are placed in. `default` is four across at the wide width and two across at
+   * the narrow one; `large` is the board on `/platform`, where the first card is the featured one.
+   */
+  size?: 'default' | 'large';
+}
+
+const { cards, size = 'default' } = Astro.props;
+
+/**
+ * The panel each card carries, by position (AAP 0.2.4). Position rather than `card.number`: the
+ * number is copy, and a page that ever renumbers its cards must not silently take another card's
+ * illustration with it.
+ */
+const STAGE_PANELS = ['stage-01', 'stage-02', 'stage-03', 'stage-04'] as const;
+
+const STAGE_COUNT = STAGE_PANELS.length;
+
+/**
+ * A set of any other size cannot be rendered: a shorter set would leave panels unused and a longer
+ * one would leave a card without its own, so the build stops here and names the component instead
+ * of emitting a page with a hole in it.
+ */
+if (cards.length !== STAGE_COUNT) {
+  throw new Error(
+    `StageCards: expected exactly ${STAGE_COUNT} stage cards, received ${cards.length}. The four authored panels are mapped to card position, so the set has to hold one card per panel.`,
+  );
+}
+
+/**
+ * The board places its first card as the featured one — 650 wide, which is two of the board's 305
+ * columns plus the 40 gutter between them, while the card keeps every other card's height and
+ * spacing (AAP 0.2.1, 0.2.3). It is expressed as a column span rather than a width, so the card
+ * measures two columns plus the gutter by construction at any content width. At the narrow width
+ * the featured width has no counterpart, so the span applies only from the theme's one breakpoint
+ * (PA-5) and `large` then renders exactly as `default` does.
+ */
+const isBoard = size === 'large';
+
+/**
+ * The grid: two across with a 16 gutter and a 32 row gap at the narrow width, four across with the
+ * design's own 40 gutter and 56 row gap from the theme's breakpoint (AAP 0.8.4). Every value is a
+ * spacing step of the theme, which is also what keeps the row heights equal without a height of
+ * their own — each card is as tall as its own content, and the grid aligns them.
+ */
+const LIST = 'grid grid-cols-2 gap-x-16 gap-y-32 wide:grid-cols-4 wide:gap-x-40 wide:gap-y-56';
+
+/** The board's featured card, at the wide width only, and only for the first card. */
+const FEATURED = 'wide:col-span-2';
+
+/** One card. It draws no box of its own: no fill, border, radius, shadow or padding. */
+const CARD = 'flex flex-col';
+
+/**
+ * The card's head — its media and its caption row — which is the link where the card has one. The
+ * two are one target, so the whole head responds to a pointer and the link's focus ring encloses
+ * both; `group` is what lets the plate inside the media follow that same state, and it is applied
+ * only to the linked head, because a static card has no state to follow.
+ */
+const CARD_HEAD = 'flex flex-col items-stretch gap-12';
+
+/**
+ * The media box: the panel fills it and its radius corners crop it, so no inner plate is needed.
+ *
+ * The design's media slot has no ratio of its own — it fills the card's height above the caption
+ * row (AAP 0.2.3) — and the theme declares no ratio token, so the box takes the spacing step
+ * nearest the slot the panels were authored for at each width: 180 at the narrow width, 240 at the
+ * wide one, one step for every card including the featured one. That is what holds the board's
+ * defining relationship — the featured card is wider, never taller — and it costs the design's
+ * 305x373 aspect, which no step of the scale can reach.
+ */
+const MEDIA = 'relative block h-180 overflow-hidden rounded-media wide:h-240';
+
+/**
+ * The plate the design reference gives a linked card: a circular plate with an up-right arrow,
+ * revealed on hover and on focus-within, and the only thing that changes — no shadow, no scale, no
+ * colour shift (AAP 0.2.1, 0.2.3). It is `space-32` square at the narrow width and `space-64` at
+ * the wide one, the design's 62 drawn as the theme's step, and it is centred over the media rather
+ * than offset, because the frame's few-pixel offset is its own auto-layout artifact.
+ *
+ * Its tone is the page ground's own pairing rather than the design's literal Cream. The design
+ * draws a Cream plate because its page is Chocolate; this site's ground is mirrored to Cream
+ * (AAP 0.6.3), where a Cream plate would render at 1:1 and be invisible. AAP 0.6.1 settles that
+ * case — a pairing that fails on the ground the site actually uses is re-pointed to a compliant
+ * token — so the plate is Chocolate carrying a Cream arrow, exactly the tone `Button.astro` gives
+ * a control on the Cream ground, at 17.08:1. The plate is decoration beside a link that is already
+ * a link in the markup, so the card never depends on it to read as one (rule B-3).
+ */
+const PLATE =
+  'pointer-events-none absolute start-1/2 top-1/2 flex size-32 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink-chocolate text-ink-cream opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 wide:size-64';
+
+/**
+ * The caption row: the name flush left and the ordinal flush right on one shared baseline, pushed
+ * apart by `space-between` as the design draws them (AAP 0.2.3).
+ *
+ * The two runs sit on one baseline, which is the relationship the design draws: the name is on the
+ * card-title rung and the ordinal on the mono meta rung, so centring the two boxes would leave the
+ * smaller run's baseline a few pixels above the larger one's.
+ *
+ * The row wraps rather than compressing when the two runs cannot share the narrow card: a name and
+ * an ordinal that both fill the column would otherwise be squeezed until a word broke mid-word, so
+ * the ordinal moves to a line of its own — still flush right, by its own inline-start margin — and
+ * the name wraps at its word boundaries. With the runs the design draws, the row never wraps.
+ *
+ * The two runs are separated in the markup by a whitespace expression, which is what stops the
+ * link's accessible name from running them together for a screen reader. Flex layout drops a
+ * whitespace-only text node, so the row's own spacing is untouched.
+ */
+const CAPTION = 'flex flex-wrap items-baseline justify-between gap-16';
+
+/**
+ * The name, on the design's card-title step, in the page's own ink. Its floor is zero, so a name
+ * longer than the narrow column wraps instead of pushing the ordinal out of the card: a flex item's
+ * automatic minimum size would otherwise hold the name at its longest word and force the row wider
+ * than its track, which is what puts a horizontal scrollbar on a 320-pixel page. The zero is written
+ * directly because the theme declares no `0` step of its own, and `0` is the one length the token
+ * rule allows beside `none`, `auto`, `inherit`, `currentColor` and `transparent` (AAP 0.6.6).
+ */
+const NAME = 'type-heading-5 min-w-[0]';
+
+/**
+ * The ordinal: the mono meta step. It takes the page's own ink rather than a muted one, because the
+ * design draws the name and the ordinal in one ink and only their alignment apart; it never
+ * shrinks, and its own inline-start margin is what keeps it flush right on the line it lands on.
+ */
+const NUMBER = 'type-button-2 ms-auto shrink-0';
+
+/** The line that describes the stage: body copy in the palette's secondary ink (9.40:1). */
+const LINE = 'type-body-3 mt-8 text-ink-taupe';
+
+/** The status label sits beneath the line, so no stage's claim is left unqualified (AAP 0.7.5). */
+const STATUS = 'mt-8';
+---
+
+<ul class={LIST}>
+  {
+    cards.map((card, index) => {
+      const panel = STAGE_PANELS[index];
+      const href = card.href ?? '';
+      const isLinked = href !== '';
+      const CardHead = isLinked ? 'a' : 'div';
+
+      return (
+        <li class:list={[CARD, isBoard && index === 0 ? FEATURED : false]}>
+          <CardHead
+            class:list={[CARD_HEAD, isLinked ? 'group' : false]}
+            {...(isLinked ? { href } : {})}
+          >
+            <span class={MEDIA}>
+              <IllustrationPanel variant={panel} />
+              {isLinked && (
+                <span class={PLATE}>
+                  <Icon name="arrow-up-right" size="sm" />
+                </span>
+              )}
+            </span>
+            <span class={CAPTION}>
+              <span class={NAME}>{card.name}</span>
+              {' '}
+              <span class={NUMBER}>{card.number}</span>
+            </span>
+          </CardHead>
+          <p class={LINE}>{card.line}</p>
+          <div class={STATUS}>
+            <StatusLabel text={card.statusLabel} tone="default" />
+          </div>
+        </li>
+      );
+    })
+  }
+</ul>

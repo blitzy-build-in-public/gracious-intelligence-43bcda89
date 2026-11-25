@@ -1,0 +1,69 @@
+---
+/**
+ * The company name, set as type — never an image, never a logo mark, never a heading
+ * (AAP 0.2.2, 0.8.1).
+ *
+ * The brand is authored as type because rule W-1 keeps the design file's own logo mark and
+ * wordmark glyphs out of the output, so there is no mark to place: these words are the whole
+ * identity the component renders. Nothing is imported, no image element exists, and the family
+ * is Urbanist, declared once in the theme and served from this origin (rule B-1).
+ *
+ * It renders a <p>: a block box, so the name can take the hero's two lines and the footer's one
+ * without any element needing to be a heading. Each page's single <h1> is the hero headline
+ * `Hero.astro` renders after this element, so no heading level belongs here.
+ *
+ * The ink is inherited rather than set. The theme paints the page Chocolate on Cream (17.08:1),
+ * and `currentColor` carries whatever ink the block this is composed into sets — Cream inside the
+ * two dark bands, whose `.tone-inverse` rule does exactly that. Alignment is the consumer's too:
+ * the About page's top block right-aligns the wordmark and the footer left-aligns it, so no
+ * `text-align` is written here.
+ *
+ * It is not interactive: no link, no tab stop, no hover, focus or active state, and no script —
+ * server-rendered markup only (rule W-2).
+ */
+type Place = 'hero' | 'footer';
+
+interface Props {
+  /**
+   * Where the wordmark sits, which fixes the line limit it must fit: the hero is measured
+   * against two lines and the footer against one (AAP 0.2.2). It changes nothing else — not the
+   * family, the weight, the rung or the ink.
+   */
+  place: Place;
+  /**
+   * The company name exactly as A0 writes it, passed from `global.wordmark` (AAP 0.7.2).
+   *
+   * An extension to the interface AAP 0.8.1 declares for this component: a component renders a
+   * string only from a prop or an expression over props (AAP 0.4.3), and the name is copy the
+   * content layer owns, so it arrives here instead of being typed in this file. That keeps
+   * `src/content/global.ts` the one definition the header and the footer both read.
+   */
+  text: string;
+}
+
+const { place, text } = Astro.props;
+
+/**
+ * The display rung each place takes, from the fit measurement in AAP 0.2.2.
+ *
+ * Both places take `text-display-2` — Urbanist 500, line-height 1, at the token's mobile step
+ * below the theme's 900-pixel breakpoint and its desktop step above it — because the
+ * 21-character name sets on a single line inside both content columns: it fills 83 per cent of
+ * the mobile column and 65 per cent of the desktop one. That satisfies the hero's two-line limit
+ * and the footer's one-line limit in both places, so neither steps down and the two places share
+ * one rung. At the 320-pixel reflow width the same setting wraps to two lines instead of
+ * overflowing the column, which is what keeps the page free of horizontal scroll below the
+ * design widths.
+ *
+ * The step exists for the case the measurement rules out: were the setting to wrap inside the
+ * footer's one-line limit, the footer alone would take `type-heading-2`, the next rung down the
+ * 390 ladder, while the hero kept `text-display-2` over its two lines. A rung is only ever
+ * chosen from the scale — no size invented between rungs, and none below the smallest one.
+ */
+const RUNG: Record<Place, string> = {
+  hero: 'type-display-2',
+  footer: 'type-display-2',
+};
+---
+
+<p class={RUNG[place]}>{text}</p>

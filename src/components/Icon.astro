@@ -2,13 +2,23 @@
 /**
  * The one site at which a Phosphor glyph is inlined (AAP 0.2.3, rule B-1).
  *
- * Four surfaces need an icon and none of them may fetch one: the mobile menu's burger
- * (`list`), the accordion's plus and minus pair, the up-right arrow inside the linked stage
- * card's Cream disc, and the enquiry form's validation and confirmation marks. Each source is
- * imported from the installed `@phosphor-icons/core` package at build time and inlined, so the
- * page carries the drawing itself — no icon font, no icon CDN, no `<use href>` naming another
- * origin (rule B-1), and nothing exported, traced or redrawn from the design reference (rule
- * W-1). The package is the one dependency this file needs and the one it takes.
+ * The inventory is the design's icon set plus the two status marks the form's message states
+ * require. The design set (`16:181`, inside the Icons frame `16:171`) draws nine glyphs at a
+ * 24×24 master, and its nine variant names — Arrow Up Right, Arrow Right, Caret Down, Burger,
+ * Plus, Minus, Play, CalendarDots, UploadSimple — are the first nine members below in that
+ * order: AAP 0.2.3 counts this primitive at those nine glyphs and 0.2.4 says the same nine
+ * ship from `@phosphor-icons/core` inlined at build time. One of them is the design's name
+ * rather than the package's, because Phosphor has no burger file: the Burger variant is drawn
+ * by `list`. Beside the nine sit `warning-circle` and `check-circle`, which the design set does
+ * not draw but AAP 0.2.2 and 0.6.4 require, since the validation message and the confirmation
+ * are always shown with an icon and every form state is designed from the request rather than
+ * copied from the file (AAP 0.15.2).
+ *
+ * None of the eleven is fetched: each source is imported from the installed
+ * `@phosphor-icons/core` package at build time and inlined, so the page carries the drawing
+ * itself — no icon font, no icon CDN, no `<use href>` naming another origin (rule B-1), and
+ * nothing exported, traced or redrawn from the design reference (rule W-1). The package is the
+ * one dependency this file needs and the one it takes.
  *
  * Every use is decorative beside the text that already says the same thing: the menu button,
  * the accordion summary and the field message each carry the words, so the wrapper is hidden
@@ -23,26 +33,39 @@
  * nothing here states a value of its own (AAP 0.2.2, 0.6.6).
  *
  * This file makes `src/components` carry 29 files, not the 28 the file lists name: AAP 0.2.3
- * inventories this primitive, and the four consumers above cannot be built without it.
+ * inventories this primitive, and the consumers of the design set and of the form's message
+ * states cannot be built without it.
  */
+import arrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import arrowUpRight from '@phosphor-icons/core/assets/regular/arrow-up-right.svg?raw';
+import calendarDots from '@phosphor-icons/core/assets/regular/calendar-dots.svg?raw';
+import caretDown from '@phosphor-icons/core/assets/regular/caret-down.svg?raw';
 import checkCircle from '@phosphor-icons/core/assets/regular/check-circle.svg?raw';
 import list from '@phosphor-icons/core/assets/regular/list.svg?raw';
 import minus from '@phosphor-icons/core/assets/regular/minus.svg?raw';
+import play from '@phosphor-icons/core/assets/regular/play.svg?raw';
 import plus from '@phosphor-icons/core/assets/regular/plus.svg?raw';
+import uploadSimple from '@phosphor-icons/core/assets/regular/upload-simple.svg?raw';
 import warningCircle from '@phosphor-icons/core/assets/regular/warning-circle.svg?raw';
 
 /**
- * The glyphs the site's consumers ask for, and nothing else: a union closed to the six names
- * below means a caller cannot request a glyph this file has no source for, and an icon cannot
- * appear on the site without a consumer that needed it. The names are Phosphor's own, so a
- * reader can find the artwork in the package without a mapping table.
+ * The design's nine-glyph icon set plus the two status marks the form's messages require, and
+ * nothing else: every member below is a Phosphor source imported above, so a caller cannot
+ * request a glyph this file has no source for, while the union states the whole inventory the
+ * design draws rather than only the glyphs a composition consumes today. The names are
+ * Phosphor's own, so a reader can find the artwork in the package without a mapping table; the
+ * design's Burger variant is the one name that differs from its file, and it is `list`.
  */
 type IconName =
+  | 'arrow-up-right'
+  | 'arrow-right'
+  | 'caret-down'
   | 'list'
   | 'plus'
   | 'minus'
-  | 'arrow-up-right'
+  | 'play'
+  | 'calendar-dots'
+  | 'upload-simple'
   | 'warning-circle'
   | 'check-circle';
 
@@ -75,10 +98,15 @@ const { name, size = 'md', class: className } = Astro.props;
  * source here fails the type check rather than rendering an empty box.
  */
 const GLYPHS: Record<IconName, string> = {
+  'arrow-up-right': arrowUpRight,
+  'arrow-right': arrowRight,
+  'caret-down': caretDown,
   list,
   plus,
   minus,
-  'arrow-up-right': arrowUpRight,
+  play,
+  'calendar-dots': calendarDots,
+  'upload-simple': uploadSimple,
   'warning-circle': warningCircle,
   'check-circle': checkCircle,
 };
@@ -136,7 +164,7 @@ function withInkFromCurrentColour(tag: string): string {
 }
 
 /**
- * Prepares a glyph for inline use. The six sources satisfy this contract today; the checks
+ * Prepares a glyph for inline use. The eleven sources satisfy this contract today; the checks
  * below keep the component's guarantees true if a source changes, and each failure names the
  * glyph so the next reader knows which file to open.
  */

@@ -43,12 +43,14 @@ const TONE_CLASS: Record<NonNullable<Props['tone']>, string> = {
 };
 
 /**
- * The small mono rung the design reference binds to its captions and mono meta lines (AAP 0.2.2),
- * which the theme steps from its Mobile size to its Desktop size on its own, and the upper case,
- * which is presentation and so is applied by CSS rather than typed into the content layer (AAP
- * 0.6.6) — the same division the eyebrow, navigation and button faces use.
+ * The rung the Label pattern itself uses: `text-button-1`, Geist Mono at Desktop 16 and Mobile 12
+ * (AAP 0.2.3), because AAP 0.6.2 styles this label from that pattern rather than from the
+ * pill-tag, caption or mono-meta step. The theme steps it from its Mobile size to its Desktop size
+ * on its own at its 900-pixel breakpoint, so the component names the rung alone. The upper case is
+ * presentation, applied by CSS rather than typed into the content layer (AAP 0.6.6) — the same
+ * division the eyebrow, navigation and button faces use.
  */
-const STATUS = 'type-button-2 mono-uppercase';
+const STATUS = 'type-button-1 mono-uppercase';
 ---
 
 <span class={`${STATUS} ${TONE_CLASS[tone]}`}>{text}</span>

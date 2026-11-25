@@ -44,21 +44,26 @@ interface Props {
 const { place, text } = Astro.props;
 
 /**
- * The display rung each place takes, from the fit measurement in AAP 0.2.2.
+ * The display rung each place takes, from the fit measurement AAP 0.2.2 requires.
  *
- * Both places take `text-display-2` — Urbanist 500, line-height 1, at the token's mobile step
- * below the theme's 900-pixel breakpoint and its desktop step above it — because the
- * 21-character name sets on a single line inside both content columns: it fills 83 per cent of
- * the mobile column and 65 per cent of the desktop one. That satisfies the hero's two-line limit
- * and the footer's one-line limit in both places, so neither steps down and the two places share
- * one rung. At the 320-pixel reflow width the same setting wraps to two lines instead of
- * overflowing the column, which is what keeps the page free of horizontal scroll below the
- * design widths.
+ * The rule is fit, stated per width. The hero is measured against a limit of two lines and the
+ * footer against one, and each place takes the first rung of its width's descending order that
+ * meets its limit (AAP 0.2.2). Both places take `text-display-2` — Urbanist 500, line-height 1,
+ * at the token's 32-pixel mobile step below the theme's 900-pixel breakpoint and its 96-pixel
+ * desktop step above it — because the 21-character name sets on a single line inside both
+ * content columns. That is measured rather than estimated, as 0.2.2 asks: the rendered block in
+ * the real vendored font at each design width gives one line box, filling 296 of the 358-pixel
+ * mobile column (about 83 per cent) and 877 of the 1344-pixel desktop column (about 65 per
+ * cent). One line in both places satisfies the hero's two-line limit and the footer's one-line
+ * limit at both widths, so neither place steps down and the two share one rung. At the
+ * 320-pixel reflow width the same setting wraps to two lines instead of overflowing the column,
+ * which is what keeps the page free of horizontal scroll below the design widths.
  *
- * The step exists for the case the measurement rules out: were the setting to wrap inside the
- * footer's one-line limit, the footer alone would take `type-heading-2`, the next rung down the
- * 390 ladder, while the hero kept `text-display-2` over its two lines. A rung is only ever
- * chosen from the scale — no size invented between rungs, and none below the smallest one.
+ * The `footer` entry below is exactly where 0.2.2's step-down would be applied, and nowhere
+ * else: if a future change to the copy makes the footer setting wrap, the footer alone takes
+ * `type-heading-2` — the next rung down the 390 order, which itself measures one line — while
+ * the hero keeps `text-display-2` across its two lines. A rung is only ever chosen from the
+ * scale — no size invented between rungs, and none below the smallest one.
  */
 const RUNG: Record<Place, string> = {
   hero: 'type-display-2',

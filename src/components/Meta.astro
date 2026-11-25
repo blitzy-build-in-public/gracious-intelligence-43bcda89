@@ -1,0 +1,109 @@
+---
+/**
+ * The document head, composed once for every route: the title, the description when the page has
+ * one, the Open Graph and Twitter metadata, the two icon links and the robots meta (FR-7, FR-8,
+ * AAP 0.4.2, 0.8.1).
+ *
+ * This is the one place the head is written, and therefore the one place a `<link>`, `<script>` or
+ * `<img>` can enter a page. It introduces exactly the two icon links and reaches nothing else, so
+ * rule B-1's "no third-party runtime request" holds structurally rather than by review: there is no
+ * second place a foreign origin could be added. The fonts are declared by `src/styles/theme.css`
+ * and served from the site's own `/fonts/`, so no font link belongs here.
+ *
+ * No string a reader sees is written in this file. The title, the description and the site name
+ * arrive as props from `src/content` (rule W-1), and a page with no description gets no description
+ * tag rather than an invented one (rule B-4) — the 404 route is that page. The values below are
+ * protocol tokens: `utf-8`, the viewport declaration, `website`, `summary_large_image` and the two
+ * robots values are attribute values of the HTML and Open Graph vocabularies, not copy, so they are
+ * stated literally and never routed through the content layer.
+ *
+ * Configuration is not read here either (rule B-2). `siteUrl` and `live` are resolved once by
+ * `src/lib/env.ts` — the only module that reads the process environment — and handed down by the
+ * page layout, so this component cannot see a configuration value that the build has not already
+ * validated.
+ *
+ * The content security policy is likewise not written here: Astro emits the hash-based policy as
+ * one `<meta>` per page from `security.csp` in `astro.config.mjs`, and a hand-written tag beside it
+ * would be a second mechanism for a concern that already has one (rule W-2).
+ */
+import type { PageMeta } from '../content/global.ts';
+
+interface Props {
+  /**
+   * The page's A8 metadata. `title` is required on every route; `description` is present on every
+   * route but the 404, which A8 gives a title, a heading, a text and a link and no description.
+   */
+  meta: PageMeta;
+  /**
+   * The site's absolute origin from `getSiteUrl()`, without a trailing slash, or `null` when no
+   * site address is configured. A link preview rejects a relative URL, so `og:url` and `og:image`
+   * are omitted rather than emitted with a guessed host while the address is unknown.
+   */
+  siteUrl: string | null;
+  /** Whether the site may be indexed, from `isLive()`: true only when the live flag is exactly `true`. */
+  live: boolean;
+  /**
+   * Withholds the site from every crawler on a page that must never be indexed whatever the
+   * configuration says. The 404 route is the only caller, and it passes `true` unconditionally.
+   */
+  forceNoindex?: boolean;
+  /**
+   * Whether the 1200x630 link-preview image was generated for this build. It gates the `og:image`
+   * tag, so a build whose PNG is missing cannot point a preview at a file that does not exist.
+   */
+  ogImage: boolean;
+  /**
+   * The company name as A0 writes it, for `og:site_name`. An extension to the interface AAP 0.8.1
+   * records for this component: a component renders a user-visible string only from a prop, and
+   * `og:site_name` is that string's one home in the head (AAP 0.7.2, rule W-1).
+   */
+  siteName: string;
+}
+
+const { meta, siteUrl, live, forceNoindex = false, ogImage, siteName } = Astro.props;
+
+/**
+ * The description, or `null` where the page has none. A description that is absent and one that is
+ * blank are the same state here: neither is emitted, because an empty `content` attribute tells a
+ * crawler and a link preview less than the omitted tag does (rule B-4). The wording itself is never
+ * altered — only the decision to emit it reads the value.
+ */
+const description =
+  meta.description !== undefined && meta.description.trim() !== '' ? meta.description : null;
+
+/** The origin without its trailing slash, or `null` when no address is configured. */
+const configuredOrigin = siteUrl === null ? '' : siteUrl.trim().replace(/\/+$/, '');
+const origin = configuredOrigin === '' ? null : configuredOrigin;
+
+/**
+ * This page's own address, from the route the build is emitting rather than from any configuration
+ * value: `Astro.url` is resolved at build time, so `/platform` yields one static string per page.
+ */
+const path = Astro.url.pathname.startsWith('/') ? Astro.url.pathname : `/${Astro.url.pathname}`;
+const pageUrl = origin === null ? null : `${origin}${path}`;
+
+/** The link-preview image, absolute for the same reason `og:url` is, and only when it was built. */
+const socialImage = origin === null || !ogImage ? null : `${origin}/og-image.png`;
+
+/**
+ * The indexability switch, and the only place it is decided (FR-8, WT-09). A page cannot obtain
+ * `noindex` by omission and cannot lose it by mistake: every route is withheld unless the site is
+ * live, and `forceNoindex` withholds one page even then.
+ */
+const robots = forceNoindex || !live ? 'noindex, nofollow' : 'index, follow';
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{meta.title}</title>
+{description !== null && <meta name="description" content={description} />}
+<meta property="og:type" content="website" />
+<meta property="og:title" content={meta.title} />
+{description !== null && <meta property="og:description" content={description} />}
+<meta property="og:site_name" content={siteName} />
+{pageUrl !== null && <meta property="og:url" content={pageUrl} />}
+{socialImage !== null && <meta property="og:image" content={socialImage} />}
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="robots" content={robots} />

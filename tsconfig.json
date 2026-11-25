@@ -1,9 +1,5 @@
 {
   "extends": "astro/tsconfigs/strict",
-  // The scripts and test helpers import `node:` builtins and read `process`, so the node declarations are named here instead of being picked up implicitly from node_modules/@types.
-  "compilerOptions": {
-    "types": ["node"]
-  },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist", "node_modules", "screenshots", ".build"]
 }

@@ -1,0 +1,92 @@
+---
+/**
+ * A3's Detail paragraph: the one place on the site where a bare paragraph of the specification's
+ * copy is rendered, set beneath the cards on `/platform/site-intelligence` (AAP 0.8.1, 0.8.4).
+ *
+ * It borrows the template's detail-block anatomy and only its rhythm: an optional bracketed mono
+ * eyebrow, body copy set directly on the page ground, then a single hairline closing the block
+ * (AAP 0.6.2, design node 2221:568). There is deliberately no heading here and no block title, and
+ * a later reader must not add one: `Props` carries no string for a title, and promoting the label
+ * to a heading — or inventing one to sit under it — would put copy on the page that the
+ * specification does not supply (AAP 0.7.6, rule B-4). The anatomy contributes the label, the
+ * paragraph and the closing rule; it has no title slot this block has anything to fill.
+ *
+ * Nothing but that hairline contains the block: no card, no fill, no border box, no radius and no
+ * shadow, because the design reference declares no elevation anywhere (AAP 0.2.2, 0.6.3). The
+ * opening and closing y-rhythm is the block's own, and it is the design's: `space-60` above and
+ * below at the narrow width and `space-80` at the wide one.
+ *
+ * Both strings arrive as props from `src/content/site-intelligence.ts`, so the block holds no copy
+ * of its own, reads no content module, borrows nothing from the design file and invents nothing
+ * (rule W-1, AAP 0.4.3). Nothing is configured or fetched here either: the block reads no build
+ * configuration, names no address and reaches no remote origin (rules B-2, B-1).
+ *
+ * Presentation is the system's. `.content` is the page's content column, so the measure is 358
+ * inside 16-pixel insets at 390 and 1344 inside 48-pixel insets at 1440. `.type-body-2` is the
+ * intro-paragraph rung — Urbanist 400 at leading 1.5, 24 at the wide width and 14 at the narrow one
+ * — and it steps with the theme's breakpoint rather than with anything declared here. The copy is
+ * set ragged right: the design reference justifies the paragraph inside its own narrow measure, and
+ * justification carried across this much wider column would open gaps between words that the
+ * narrow setting never has. `.border-hairline` is the decorative 1-pixel Khaki rule the design
+ * draws bottom-only across a block's full width; it never identifies a control, so it carries no
+ * ink of its own beyond the rule. Chocolate on Cream measures 17.08:1, and the ink is set here
+ * rather than inherited so the paragraph's contrast never depends on the ground a composer gives it
+ * (rule B-3). The block declares no height, no clamp and no overflow, so copy that grows with the
+ * reader's zoom or font size simply takes more lines.
+ *
+ * One static `<section>` holding at most two elements: no script, no framework import, no hydration
+ * directive and no request (rules W-2, B-1), and nothing focusable, so the block adds no tab stop to
+ * the page's keyboard path (rule B-3).
+ */
+
+import Label from './Label.astro';
+
+interface Props {
+  /**
+   * A3's Detail paragraph, exactly as the content layer holds it and in full. It is rendered whole
+   * and untouched — no case change, no truncation, no sentence split — so the copy a reader sees is
+   * the specification's own (rule B-4, AAP 0.7.3).
+   */
+  text: string;
+  /**
+   * The block's bracketed eyebrow, when A3 gives it one. Absent — or blank after trimming, which is
+   * how a field not yet filled arrives — renders nothing at all rather than an empty label and the
+   * gap where it would have stood.
+   */
+  label?: string;
+}
+
+const { text, label } = Astro.props;
+
+/**
+ * The content column and the block's separation from the sections either side of it: `space-60` at
+ * the narrow width and `space-80` at the wide one, the vertical padding the design gives this block
+ * at each of its two artboards (AAP 0.8.4). The wide step comes from the theme's `--breakpoint-wide`
+ * token through Tailwind's `wide:` variant, so the 900 breakpoint has one source (PA-5) and this
+ * block moves with it. The column and the 16-pixel gap between the label and the paragraph — the
+ * gap the design's eyebrow takes to the rung beneath it — are the pair's whole layout.
+ */
+const LAYOUT = 'content py-60 wide:py-80 flex flex-col gap-16';
+
+/**
+ * The paragraph: the body-2 rung, the page's primary ink, and the hairline that closes the block.
+ * The padding below the copy is the space the design leaves between a block's last line and its
+ * closing rule — `space-16` at the narrow width and `space-32` at the wide one — so the rule reads
+ * as the block's edge rather than as an underline on the last sentence.
+ */
+const PARAGRAPH = 'type-body-2 text-ink-chocolate border-hairline pb-16 wide:pb-32';
+
+/** The eyebrow as it will be rendered, kept exactly as the content layer wrote it. */
+const labelText = label ?? '';
+
+/**
+ * A blank label counts as absent. Trimming decides that and nothing else: the string that reaches
+ * the page is the caller's own, so the copy-fidelity comparison sees the specification's text.
+ */
+const hasLabel = labelText.trim() !== '';
+---
+
+<section class={LAYOUT}>
+  {hasLabel && <Label text={labelText} tone="ink" />}
+  <p class={PARAGRAPH}>{text}</p>
+</section>

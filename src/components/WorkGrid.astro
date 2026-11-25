@@ -1,0 +1,197 @@
+---
+/**
+ * The Latest Show band as a grid of text cards: the home page's gap and two of the product
+ * page's reused blocks (AAP 0.2.3, 0.6.2, 0.8.1).
+ *
+ * The design reference draws this band with two photographic cards and a carousel pair, and every
+ * one of those is chrome. AAP 0.2.4 closes both card image slots by decision — each card carries a
+ * title and a line instead, no card frame is drawn, and the pagination pair goes with the images —
+ * so the component renders no image, no panel and no control, and nothing here needs the text
+ * alternative a photograph would (rule W-1 forbids the template's photographs, and rule B-4
+ * forbids the invented content a filled card would need). What stays is the layout: the bracketed
+ * eyebrow, the two-column header, the card rhythm and the section's own separation.
+ *
+ * The card is type, not a box. The reference's card root draws no fill, no stroke, no radius, no
+ * effect and no padding at either width, so the hairline beneath each card is the whole of its
+ * containment — one decorative rule, the rhythm the template gives its own rows (AAP 0.2.3,
+ * 0.6.3). Nothing here is a link, so no card takes a tab stop, a hover disc, an arrow or a focus
+ * ring (AAP 0.8.1, rule B-3), and the reference declares no state on the card in any case.
+ *
+ * Copy arrives as props and the component holds none of its own (rule W-1): a card is either a
+ * title over a line, which is the shape the home page's gap and the product page's systems block
+ * supply, or a single string, which is the shape its model block supplies — and that second
+ * branch renders no title element at all, because inventing one would be inventing copy
+ * (rule B-4).
+ *
+ * Static markup: no script, no island, no framework import and no request (rules B-1, W-2).
+ */
+import type { Item, Line } from '../content/global.ts';
+
+import Label from './Label.astro';
+import SectionHeading from './SectionHeading.astro';
+
+interface Props {
+  /** The bracketed eyebrow above the header, exactly as the content layer writes it. */
+  label?: string;
+  /** The section's heading, exactly as the content layer writes it. */
+  heading: string;
+  /**
+   * The section's intro paragraph, set beneath the heading as its lead. The design reference puts
+   * its paragraph in a second header column; AAP 0.8.1 gives this block one `text`, and a section
+   * heading that carries its own intro is the shape `SectionHeading` already renders.
+   */
+  text?: string;
+  /** The mono caption that closes the block, beneath the grid, when the specification gives one. */
+  caption?: string;
+  /** Cards with a title and a line: the home page's gap, and the product page's systems block. */
+  items?: Item[];
+  /** Cards carrying one string each: the product page's model block. */
+  lines?: Line[];
+}
+
+const { label, heading, text, caption, items, lines } = Astro.props;
+
+/**
+ * Exactly one of `items` and `lines` describes a card, and one of them must actually hold cards.
+ * A page that passes both, or neither, or an empty array is mis-wired, and the block it would
+ * render is a heading over nothing — so the build stops here, naming this component, rather than
+ * publishing a hollow section (AAP 0.8.1).
+ */
+const cardCount = items?.length ?? lines?.length ?? 0;
+
+if ((items === undefined) === (lines === undefined) || cardCount === 0) {
+  throw new Error(
+    'WorkGrid: pass exactly one non-empty `items` or `lines` array. A card holds either a title and a line or a single string, so both or neither cannot be rendered.',
+  );
+}
+
+/**
+ * The cards as one shape, so the list has a single render path: an empty `title` is a card whose
+ * data carries no title, which is the `lines` branch, and it renders no heading of its own rather
+ * than an empty one.
+ */
+const cards: { title: string; text: string }[] =
+  items !== undefined
+    ? items.map((item) => ({ title: item.title, text: item.line }))
+    : (lines ?? []).map((line) => ({ title: '', text: line }));
+
+/**
+ * The wide column count, chosen so no row is left half full by the count that arrives: a length
+ * that divides by three fills a three-column grid (the home page's six cards), one that divides by
+ * two fills a two-column grid (the four-item systems block), and anything else takes three columns
+ * and lets the last row run short (the five-string model block). Both class names are written out
+ * here so the compiler generates them; the narrow width is one column, where the design's own
+ * 358-pixel content column has room for a card's text and nothing beside it (AAP 0.8.4).
+ */
+const WIDE_COLUMNS =
+  cardCount % 3 === 0
+    ? 'wide:grid-cols-3'
+    : cardCount % 2 === 0
+      ? 'wide:grid-cols-2'
+      : 'wide:grid-cols-3';
+
+/**
+ * The section: the page's content column (AAP 0.8.4), separated from its neighbours by the
+ * template's own pairing — `space-160` above and `space-80` below at the wide width, `space-60`
+ * at each end at the narrow one (AAP 0.2.1, PA-1). The wide steps come from the theme's
+ * `--breakpoint-wide` token through Tailwind's `wide:` variant, the same declaration the theme's
+ * media query reads, so the 900-pixel step has one source (PA-5).
+ */
+const SECTION = 'content pt-60 pb-60 wide:pt-160 wide:pb-80';
+
+/** The eyebrow's separation from the header below it: `space-40`, the gap the reference gives it at the narrow width. */
+const EYEBROW = 'mb-40';
+
+/**
+ * The two-column header. The heading occupies the left column and the right column holds nothing:
+ * the design reference's second column there carries its own paragraph, and this block's paragraph
+ * is the lead under the heading instead, so an empty right column is the whole of the difference
+ * rather than an invented call to action (rule B-4).
+ *
+ * The heading takes one third of the row, which is the reference's own proportion — its heading
+ * column is 360 of a 1340 content column, and one third of this row is 421 of 1344, the closest
+ * measure the spacing scale and the grid fractions can reach without a length the token manifest
+ * does not carry. It matters because the measure is what wraps a heading: at half the row the
+ * design's own three-word headline would break into two lines rather than the three the reference
+ * sets. The row stacks to one column at the narrow width.
+ */
+const HEADER = 'mb-32 grid grid-cols-1 wide:mb-56 wide:grid-cols-3 wide:gap-40';
+
+/** The card grid: one column at the narrow width, and the wide count the card total settles. */
+const GRID = `grid grid-cols-1 gap-24 wide:gap-40 ${WIDE_COLUMNS}`;
+
+/**
+ * A card. The hairline is its only boundary and sits `space-24` (narrow) or `space-32` (wide)
+ * below the text, which is the row rhythm the template gives its ruled lists; nothing else is
+ * drawn — no fill, no border box, no radius, no shadow and no all-round padding, because the
+ * reference's card root draws none of them.
+ */
+const CARD = 'border-hairline pb-24 wide:pb-32';
+
+/** A card's title: the design's card-title step, in the page's primary ink (17.08:1 on Cream). */
+const CARD_TITLE = 'type-heading-5 text-ink-chocolate';
+
+/**
+ * A card's line beneath its title: the body step in the palette's secondary ink, Taupe, which
+ * measures 9.40:1 on Cream — never Khaki, which decorates rules and carries no text there
+ * (AAP 0.2.2, rule B-3). The `space-8` above it is the card's own title-to-line gap.
+ */
+const CARD_LINE = 'type-body-3 text-ink-taupe mt-8';
+
+/** A card that holds one string and no title: the body step in the primary ink, since it is the whole card. */
+const CARD_LONE_LINE = 'type-body-3 text-ink-chocolate';
+
+/** The closing caption: the mono caption step in the palette's tertiary ink, 7.25:1 on Cream. */
+const CAPTION = 'type-button-2 text-ink-coffee mt-24 wide:mt-32';
+
+/** The caption as it will be rendered, kept exactly as the content layer wrote it. */
+const captionText = caption ?? '';
+
+/** A blank caption counts as absent, so the block does not close on an empty paragraph. */
+const hasCaption = captionText.trim() !== '';
+
+/** The label as it will be rendered, kept exactly as the content layer wrote it. */
+const labelText = label ?? '';
+
+/** A blank label counts as absent too, so no empty bracket pair is drawn. */
+const hasLabel = labelText.trim() !== '';
+---
+
+<section class={SECTION}>
+  {
+    hasLabel && (
+      <div class={EYEBROW}>
+        <Label text={labelText} tone="ink" />
+      </div>
+    )
+  }
+
+  <div class={HEADER}>
+    <div>
+      <SectionHeading heading={heading} lead={text} as="h2" />
+    </div>
+  </div>
+
+  {/*
+    `role="list"` restates the semantics the element already has: the base stylesheet removes the
+    list marker, and WebKit drops a list's semantics along with its marker, so the role keeps the
+    grid announced as a list of cards (rule B-3). The markers themselves are decorative here, so
+    the rule that removes them costs the reader nothing.
+  */}
+  <ul class={GRID} role="list">
+    {
+      cards.map((card) => {
+        const titled = card.title !== '';
+
+        return (
+          <li class={CARD}>
+            {titled && <h3 class={CARD_TITLE}>{card.title}</h3>}
+            <p class={titled ? CARD_LINE : CARD_LONE_LINE}>{card.text}</p>
+          </li>
+        );
+      })
+    }
+  </ul>
+
+  {hasCaption && <p class={CAPTION}>{captionText}</p>}
+</section>

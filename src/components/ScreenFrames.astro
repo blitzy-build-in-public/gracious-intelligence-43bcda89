@@ -1,0 +1,230 @@
+---
+/**
+ * The three product-screen frames on `/platform/site-intelligence` (AAP 0.8.1, FR-10, WT-12).
+ *
+ * Each frame has two designed states and no third. The owner's screenshot is shown when that file
+ * was present at build time; when it was not, the frame renders a neutral panel carrying the
+ * fallback label and keeps its caption, so a slot whose screenshot has not arrived still says what
+ * it will show (AAP 0.7.4). Nothing is drawn, generated or imitated in either state: Site
+ * Intelligence is presented as a proposed product, so a mock platform would be a claim the site does
+ * not make (rule B-4), and the design reference's photographs belong to another business and may
+ * not ship (rule W-1).
+ *
+ * This is the one component that renders an `<img>` of its own instead of letting `Meta.astro`
+ * compose it (AAP 0.4.5): FR-10 and 0.7.4 require three screen slots, and 0.13.7 permits the
+ * owner's own `screens/*.png` in the published output. The exception is held shut here — every
+ * frame's `src` is asserted to be a site-relative `/screens/…` path before anything renders, so a
+ * remote or foreign origin cannot enter through this slot (rule B-1). Which screens were supplied
+ * arrives as the `present` record the build-time probe in `src/lib/screens.ts` computes; nothing
+ * here reads a configured value (rule B-2).
+ *
+ * Copy arrives as props — the three captions, their text alternatives and the fallback label — so
+ * the component holds no string of its own (rule W-1) and every one of those strings stays
+ * traceable to the content layer the copy-fidelity check reads. The caption row carries its caption
+ * alone: the design reference pairs it with a year, the specification gives this site none, so
+ * nothing is placed on the right rather than a value being invented (rule B-4).
+ *
+ * Static markup and not an island: no script, no framework import, no hydration directive and no
+ * request (rules B-1, W-2). Nothing here is interactive, so the strip adds no tab stop to the
+ * keyboard path and takes no focus ring. Presentation follows the design's own media treatment — one
+ * 4 px radius, no border, no shadow, no overlay and no motion on a supplied screenshot's box (AAP
+ * 0.2.1, 0.2.4) — with the palette mirrored onto the Cream page ground (AAP 0.6.3). The fallback
+ * panel is the one exception, and it draws only the hairline that reserves the slot.
+ */
+import type { ScreenKey } from '../lib/screens.ts';
+
+/**
+ * One frame: the published path of the owner's screenshot, its caption and its text alternative.
+ *
+ * A path and not a key, because the page resolves the key it holds in the content layer to the
+ * published filename (AAP 0.8.1). The path is asserted below rather than trusted.
+ */
+interface ScreenFrame {
+  /** The site-relative published path — `/screens/<name>.png` — of the owner's screenshot. */
+  src: string;
+  /** The frame's caption, rendered beneath the media box in both of its states. */
+  caption: string;
+  /** The screenshot's text alternative: A8's description of what the screen shows. */
+  alt: string;
+}
+
+interface Props {
+  /** The three frames, in the order the page presents them: investigate, compare, audit. */
+  frames: readonly ScreenFrame[];
+  /** Which of the three screens exist under `public/screens/`, keyed by the names below. */
+  present: Record<string, boolean>;
+  /**
+   * The designed fallback label a frame shows while its screenshot is absent.
+   *
+   * An interface extension this component needs: `present` says whether to degrade, but the words
+   * a degraded frame shows are copy owned by the content layer, and a component may hold no
+   * user-visible string of its own (rule W-1, AAP 0.7.4).
+   */
+  fallbackLabel: string;
+}
+
+const { frames, present, fallbackLabel } = Astro.props;
+
+/**
+ * The three screens in page order. The key is positional rather than read back from a prop, so the
+ * presence record is indexed by the frame's place in the strip and cannot be spelled differently by
+ * a caller; the names themselves belong to `src/lib/screens.ts`, which owns the published filenames
+ * and the probe (AAP 0.2.4).
+ */
+const SCREENS: readonly ScreenKey[] = ['investigate', 'compare', 'audit'];
+
+/*
+ * Both checks below are build-time invariants, and each names what a reader has to change. The strip
+ * is exactly three frames by design (FR-10), and a frame without its label words would render an
+ * empty box where the site's honest fallback belongs (AAP 0.7.4, rule B-4).
+ */
+if (frames.length !== SCREENS.length) {
+  throw new Error(
+    `ScreenFrames: expected exactly ${SCREENS.length} frames — ${SCREENS.join(', ')} — and received ${frames.length}. The page shows three product screens, and each frame carries its own caption and text alternative.`,
+  );
+}
+
+if (fallbackLabel.trim() === '') {
+  throw new Error(
+    'ScreenFrames: fallbackLabel is empty, so a frame whose screenshot has not been supplied would render an empty box. The label is content copy and arrives from the content layer.',
+  );
+}
+
+/** Where the owner's screenshots are published: `public/` is copied verbatim into the build. */
+const SCREEN_DIR = '/screens/';
+
+/**
+ * Resolves each frame against the probe, and refuses anything that would break the slot's two
+ * guarantees before a single element is emitted.
+ */
+const resolved = frames.map((frame, index) => {
+  const key = SCREENS[index];
+  const supplied = present[key] === true;
+
+  if (!frame.src.startsWith(SCREEN_DIR)) {
+    throw new Error(
+      `ScreenFrames: the frame for "${key}" has src "${frame.src}", which is not a site-relative ${SCREEN_DIR} path. The three frames show the owner's own screenshots and nothing else, so no remote or foreign origin may enter through this slot (rule B-1).`,
+    );
+  }
+
+  if (supplied && frame.alt.trim() === '') {
+    throw new Error(
+      `ScreenFrames: the frame for "${key}" has no text alternative. A supplied screenshot is informative, so it ships with the content layer's description of what it shows (rule B-3).`,
+    );
+  }
+
+  return { key, src: frame.src, caption: frame.caption, alt: frame.alt, supplied };
+});
+
+/**
+ * Where each frame sits, as tracks of a twelve-column grid rather than as a width in pixels.
+ *
+ * The design's portfolio strip sets four staggered items at four different widths, each aligned
+ * differently across the content column (AAP 0.2.1): a narrow item flush right (0.2687 of the
+ * column), the widest flush left (0.5851), a small one indented clear of the left inset (0.2358),
+ * with the strip's own vertical stagger between them. Three frames carry that rhythm at three
+ * distinct widths, each within a track of the design's own proportions: the first is flush right at
+ * four tracks, the second takes the widest setting flush left at seven, and the third is three
+ * tracks wide, indented clear of the left inset, ending on the seam where the second one ends.
+ *
+ * The narrow width uses the same grid for the arrangement the mobile frame draws — one frame per
+ * row, and the three horizontal positions it uses: one flush right, one flush left, one indented
+ * clear of the inset, none able to exceed the 358 px column (AAP 0.8.4).
+ *
+ * The grid has no column gap, so a span of n tracks is exactly n/12 of the content column and a
+ * frame that ends on track 12 is flush to the right inset.
+ */
+const GEOMETRY: Record<ScreenKey, string> = {
+  investigate: 'col-start-7 col-span-6 wide:col-start-9 wide:col-span-4',
+  compare: 'col-start-1 col-span-9 wide:col-start-1 wide:col-span-7',
+  audit: 'col-start-3 col-span-5 wide:col-start-5 wide:col-span-3',
+};
+
+/**
+ * The block's geometry: the page's content column and the section rhythm between its neighbours,
+ * `space-60` at the narrow width and `space-80` at the wide one. The wide step comes from the
+ * theme's `--breakpoint-wide` token through Tailwind's `wide:` variant, so the 900 breakpoint has
+ * one source (PA-5) and this block moves with it.
+ */
+const LAYOUT = 'content py-60 wide:py-80';
+
+/**
+ * The strip itself: the twelve-track grid above, with no column gap, and the design's own vertical
+ * gap between frames — its section gap at each width, `space-48` and `space-72` (AAP 0.2.1).
+ */
+const STRIP = 'grid grid-cols-12 gap-y-48 wide:gap-y-72';
+
+/**
+ * One frame: media above, caption below, separated by the design's card gap — `space-8` at the
+ * narrow width and `space-12` at the wide one (AAP 0.2.1).
+ */
+const FRAME = 'flex flex-col gap-y-8 wide:gap-y-12';
+
+/**
+ * The media box both states share: the design's 4 px media radius, at the landscape proportion it
+ * draws for its widest media slot — 784 by 456, about twelve to seven (AAP 0.2.1). One proportion
+ * for all three frames, because a screenshot's delivered size is the owner's and the box has to be
+ * reserved before the image decodes whichever way it arrives.
+ */
+const MEDIA = 'aspect-12/7 overflow-hidden rounded-media';
+
+/**
+ * The screenshot fills its box the way the design fills a media slot — the whole box, cropped from
+ * the centre rather than letterboxed or distorted.
+ */
+const IMAGE = 'block h-full w-full object-cover';
+
+/**
+ * The neutral panel an absent screenshot leaves behind, drawn from tokens the manifest already
+ * declares (AAP 0.6.4): the page's Cream ground, a 1 px Khaki hairline around the reserved box, the
+ * same 4 px radius as the media it replaces, and the fallback label centred inside it. The design
+ * reference draws no border on a media box, because it has no absent state to draw — every one of
+ * its slots holds a photograph edge to edge — so this hairline belongs to the fallback alone, and
+ * it is the manifest's `border-hairline` token on all four sides: the theme's `.border-hairline`
+ * class draws a single bottom rule, and a one-sided rule inside a rounded box would not identify
+ * the box it reserves on the ground it already sits on. No image, no broken-image icon, no spinner
+ * and no invented interface appears in its place (rule B-4).
+ */
+const PANEL =
+  'flex items-center justify-center border border-khaki bg-bg-cream px-16 py-16 text-center';
+
+/**
+ * The mono meta rung — Geist Mono, 12 at the wide width and 10 at the narrow one — in Coffee Bean,
+ * the palette's tertiary ink and its caption ink on Cream (about 7.3:1, rule B-3). The caption of a
+ * frame and the fallback label inside one are the same rung and the same ink: the design sets both
+ * of its mono caption cells in one style, and neither is cased in CSS, so the strings reach the DOM
+ * exactly as the content layer writes them (AAP 0.6.6).
+ */
+const META = 'type-button-2 text-ink-coffee';
+---
+
+<section class={LAYOUT}>
+  <ul class={STRIP} role="list">
+    {
+      resolved.map((frame) => (
+        <li class={GEOMETRY[frame.key]}>
+          <figure class={FRAME}>
+            {frame.supplied ? (
+              <div class={MEDIA}>
+                <img
+                  src={frame.src}
+                  alt={frame.alt}
+                  width="1200"
+                  height="700"
+                  loading="lazy"
+                  decoding="async"
+                  class={IMAGE}
+                />
+              </div>
+            ) : (
+              <div class={`${MEDIA} ${PANEL}`}>
+                <span class={META}>{fallbackLabel}</span>
+              </div>
+            )}
+            <figcaption class={META}>{frame.caption}</figcaption>
+          </figure>
+        </li>
+      ))
+    }
+  </ul>
+</section>

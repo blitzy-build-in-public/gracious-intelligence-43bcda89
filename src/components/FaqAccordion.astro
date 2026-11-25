@@ -1,0 +1,221 @@
+---
+/**
+ * The site's disclosure list: every question-and-answer pair on `/`, `/contact` and
+ * `/sovereignty` renders through this one component (AAP 0.2.1, 0.2.3, 0.8.1).
+ *
+ * Native `<details>`/`<summary>`, not a scripted imitation of one. The open state is HTML, so an
+ * answer stays readable with JavaScript unavailable (NF-5); the browser supplies the disclosure
+ * semantics, the keyboard activation on Enter and Space, the focus stop and the expanded state the
+ * accessibility tree exposes — none of which is restated here as an explicit accessibility
+ * attribute, an extra tab stop or a per-item identifier (rule B-3). This component is one of the
+ * site's three islands (rule W-2), and its only script is the plus/minus swap the design draws:
+ * the token sheet declares no `[open]` rule for this pattern, so the glyph is the one thing CSS
+ * cannot resolve here, and every other behaviour is the element's own.
+ *
+ * Every question and answer arrives as a prop from the content layer, so the component holds no
+ * string and invents none — no Figma copy, no "expand all" control, no closed-item summary line
+ * (rules W-1, B-4). The question is a `<span>`, not a heading: a summary's content model does not
+ * admit headings, and the section's own heading already sets the level.
+ *
+ * Ink. The design draws its questions and answers in its page's cream on a dark ground; the site
+ * mirrors that palette, so its page ground is Cream and the design's cream is the ink of the two
+ * dark bands. The question therefore takes the primary ink (Chocolate at 17.08:1) and the answer
+ * the muted ink the palette names for Cream — Coffee Bean, about 7.25:1 — rather than the design's
+ * muted grey, which measures 2.51:1 on Cream and may carry no text there at all (AAP 0.2.2,
+ * 0.6.4, rule B-3). Both inks are stated rather than inherited, so the block's contrast never
+ * depends on the ground a composer happens to give it.
+ *
+ * The rule. The design closes every item with a hairline on its bottom edge: one between items and
+ * one below the last, and none above the first. The site's counterpart on the Cream ground is the
+ * decorative hairline, so each item carries `border-hairline` — a Khaki rule that separates blocks
+ * and is never the only boundary of a control (AAP 0.6.3).
+ *
+ * Everything here resolves to a token: `.content`, the `.type-*` steps, the spacing utilities of
+ * the design's own scale and the two ink utilities. No colour literal, length or `style` attribute
+ * appears in this file (AAP 0.6.6), and its markup carries no raster, no remote asset and no
+ * foreign host (rule B-1). It reads no configuration and no global hook (rule B-2).
+ */
+import Icon from './Icon.astro';
+import SectionHeading from './SectionHeading.astro';
+import type { FaqItem } from '../content/shared/faq.ts';
+
+interface Props {
+  /** The questions and answers, in the order the content specification gives them. */
+  items: FaqItem[];
+  /**
+   * The block's heading, rendered one level below the page's `h1` by `SectionHeading`. It is the
+   * only heading the block takes: the design's bracketed eyebrow is `Label.astro`'s job and the
+   * page composes it (AAP 0.6.2), so nothing here invents one.
+   */
+  heading?: string;
+  /**
+   * Opens the first item in the markup, for a layout that shows a question answered. It is the
+   * `open` attribute, decided at build time: the state is HTML and not a DOM script (rule B-3).
+   */
+  openFirst?: boolean;
+}
+
+const { items, heading, openFirst = false } = Astro.props;
+
+/**
+ * The heading as it will be rendered, or `undefined` when the field is absent or blank — which is
+ * how a page whose copy has not been written arrives. A blank heading renders nothing at all
+ * rather than an empty element and the gap that would stand where it was.
+ */
+const headingCopy = typeof heading === 'string' && heading.trim() !== '' ? heading : undefined;
+
+/**
+ * The block's geometry: the page's content column (AAP 0.8.4), then the vertical rhythm the design
+ * gives this band between its neighbours — `space-60` at the narrow width and `space-80` from the
+ * theme's 900 breakpoint, the same step and the same variant the site's other sections use, so the
+ * breakpoint keeps one source (PA-5).
+ */
+const LAYOUT = 'content py-60 wide:py-80';
+
+/**
+ * The list: one column of items with no gap and no inset of its own. Every rule the design draws
+ * belongs to an item's bottom edge, so the list contributes none — which is also why nothing
+ * appears above the first item.
+ */
+const LIST = 'flex flex-col';
+
+/**
+ * The distance from the heading down to the first question, at each width. It is the block's own
+ * internal rhythm, so it is applied only when there is a heading to measure from.
+ */
+const LIST_WITH_HEADING = `${LIST} mt-40 wide:mt-64`;
+
+/**
+ * An item: the closing hairline on its bottom edge, then the design's own vertical padding at each
+ * width — `space-32` at the wide width and `space-20` at the narrow one, which is the step that
+ * produces the design's tappable row height.
+ *
+ * The padding sits on the item rather than on the summary so the open answer keeps the design's
+ * small gap under its question: were it on the summary, the answer would inherit the row's bottom
+ * padding a second time and the question would sit twice as far from its answer as the design has
+ * it. The summary keeps the theme's 24-square minimum hit area either way (rule B-3).
+ */
+const ITEM = 'border-hairline py-20 wide:py-32';
+
+/**
+ * The answer's inset from the row's end. The design measures its answer column as the row less the
+ * glyph and the gap before it, so the text never runs into the glyph's column; `space-56` is that
+ * measure at the wide width and `space-40` the nearest step of the scale at the narrow one, where
+ * the design's own gap is a step off the grid the palette snaps to (PA-1).
+ */
+const ANSWER_INSET = 'me-40 wide:me-56';
+
+/**
+ * The summary row: the question taking the width and the state glyph at the end of it, which is
+ * the design's space-between row with `space-20` between the two at the narrow width and
+ * `space-32` at the wide one. The gap only ever measures a single step, because the two glyphs are
+ * never both in the row — one of them is hidden.
+ *
+ * The user agent's disclosure triangle goes: `list-none` plus the marker rule below it, because
+ * the design draws a plus and a minus instead. The pointer cursor is the row's own affordance for
+ * a surface that opens on click; the design draws no hover, focus or pressed treatment on it, and
+ * none is added (AAP 0.2.3).
+ */
+const SUMMARY =
+  'flex list-none items-center gap-20 wide:gap-32 cursor-pointer [&::-webkit-details-marker]:hidden';
+
+/** The question on the design's Heading 6 rung — Urbanist 600 at leading 1.2 — in the primary ink. */
+const QUESTION = 'type-heading-6 text-ink-chocolate flex-1';
+
+/**
+ * The answer on the design's Body 4 rung — Urbanist 400 at leading 1.5 — in the muted ink, one
+ * step below the question at each width.
+ *
+ * That step is deliberately smaller than the design's own gap between a question and its answer.
+ * The summary row is as tall as the glyph, which is how the design builds its closed rows too, so
+ * half of the difference between that height and the question's shorter line box adds itself above
+ * the answer. Taking it out here is what lands the rendered question-to-answer distance on the
+ * design's at both widths: `space-8` at the wide width and `space-4` at the narrow one.
+ */
+const ANSWER = `type-body-4 text-ink-coffee mt-4 wide:mt-8 ${ANSWER_INSET}`;
+
+/**
+ * The glyph's box. `Icon` publishes no size of its own, only the theme's three steps, and the
+ * design's master is `space-24` (AAP 0.2.3); the two are held at that one step at both widths so
+ * the affordance never shrinks to a size the palette does not declare. Each glyph is wrapped in
+ * this plain span because that is the element the island shows and hides: the glyph's own wrapper
+ * is a flex box, and its display would otherwise have to be fought to hide it.
+ */
+const GLYPH = 'inline-flex';
+
+/** The first item is the only one the `openFirst` prop can open. */
+const opensFirst = (index: number): boolean => openFirst === true && index === 0;
+---
+
+<section class={LAYOUT}>
+  {headingCopy !== undefined && <SectionHeading heading={headingCopy} as="h2" />}
+  <ul class={headingCopy === undefined ? LIST : LIST_WITH_HEADING}>
+    {
+      items.map((item, index) => (
+        <li class={ITEM}>
+          <details open={opensFirst(index)} data-faq-item>
+            <summary class={SUMMARY}>
+              <span class={QUESTION}>{item.question}</span>
+              <span class={GLYPH} data-faq-glyph="closed">
+                <Icon name="plus" />
+              </span>
+              <span class={GLYPH} data-faq-glyph="open" hidden>
+                <Icon name="minus" />
+              </span>
+            </summary>
+            <p class={ANSWER}>{item.answer}</p>
+          </details>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<script>
+  /**
+   * The accordion island (AAP 0.4.2, rule W-2). The open state, the keyboard path and the
+   * accessibility tree are the native element's, so this script does exactly one thing: it swaps
+   * the plus for the minus when an item's state changes. With JavaScript unavailable the details
+   * still opens, its answer still reads, and only the glyph stays a plus — the state is never
+   * signalled by the glyph alone, because the visible answer is the primary signal (rule B-3).
+   *
+   * `toggle` does not bubble, so each item carries its own listener, attached once. The initial
+   * pass covers the item the `openFirst` prop opened in the markup, which is already `open` by the
+   * time a module script runs. Nothing here reads configuration or storage, inspects the query
+   * string, defines a global hook or makes a request (rules B-1, B-2), and the script is bundled
+   * and hashed by the build, so it is one same-origin file the content security policy admits.
+   */
+  const ITEM = 'details[data-faq-item]';
+  const CLOSED = '[data-faq-glyph="closed"]';
+  const OPEN = '[data-faq-glyph="open"]';
+
+  /** Shows the glyph that matches one item's state and hides the other. */
+  function syncGlyphs(item: HTMLDetailsElement): void {
+    const closed = item.querySelector<HTMLElement>(CLOSED);
+    const open = item.querySelector<HTMLElement>(OPEN);
+
+    if (closed !== null) {
+      closed.hidden = item.open;
+    }
+
+    if (open !== null) {
+      open.hidden = !item.open;
+    }
+  }
+
+  /** Wires every item the page renders, so a page with more than one block is covered too. */
+  function initAccordions(): void {
+    const items = document.querySelectorAll<HTMLDetailsElement>(ITEM);
+
+    for (const item of items) {
+      syncGlyphs(item);
+      item.addEventListener('toggle', () => syncGlyphs(item));
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccordions, { once: true });
+  } else {
+    initAccordions();
+  }
+</script>

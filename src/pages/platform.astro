@@ -1,0 +1,68 @@
+---
+/**
+ * The `/platform` route: the page top, the four stage cards at the board's larger size, and the
+ * enquiry block (AAP 0.4.2, 0.8.4).
+ *
+ * It is a composition and nothing else. Every visible string arrives from `src/content`, every
+ * block from the component that draws it, and the shell from the one layout, so this file holds no
+ * copy, no component definition, no configuration read and no handler (rules W-1, B-2, W-2;
+ * AAP 0.7.2, 0.10.2). It emits once, at build time.
+ *
+ * Two regions are the page's own, because the components inside them render no container. Their
+ * padding is the design reference's, so the gaps it draws between its bands survive the components'
+ * own spacing: 160 above and below the card grid at the wide width and 60 at the narrow one, then
+ * the enquiry block's 80 and 160 (60 and 96 at the narrow width), which keeps the reference's
+ * uniform 240 between sections at 1440 and its 120 at 390 (AAP 0.2.1, 0.8.4).
+ *
+ * What the reference draws and this page does not is a set of decisions. Its list section opens
+ * with a centred eyebrow and heading made of template copy, and A2 supplies no such strings, so
+ * W-1 removes the pair rather than filling it. Its filter row and its LOAD MORE control are chrome
+ * built around ten photographs the site does not have. Its enquiry band is a photograph beside ten
+ * portrait fields, and the site's only form is on `/contact` (rule W-2), so the block keeps the
+ * heading and the action A2 gives it and nothing else; the action sits on the column's end edge,
+ * which is the alignment the reference gives its own submit control. The band's photograph has no
+ * replacement: no image of the reference's may stand in its place (rule W-1), and the project's own
+ * panel component belongs to the page tops and the card grid rather than to this block.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Hero from '../components/Hero.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import StageCards from '../components/StageCards.astro';
+
+import { global } from '../content/global.ts';
+import { platform } from '../content/platform.ts';
+
+/**
+ * The board's band: the whole content column, padded as the reference pads the block holding its
+ * card grid, which also sets the gap the enquiry block then completes (AAP 0.2.1).
+ */
+const BOARD = 'content pt-60 pb-60 wide:pt-160 wide:pb-160';
+
+/**
+ * The enquiry band: the heading, then the action one `space-40` below it at the narrow width and
+ * `space-56` at the wide one, under the reference's own 80 and 160 padding.
+ */
+const ENQUIRY = 'content flex flex-col gap-40 pt-60 pb-96 wide:gap-56 wide:pt-80 wide:pb-160';
+
+/**
+ * The action's row. It spans the column and pushes the control to its end edge, where the reference
+ * puts this block's submit control, while the control keeps its own width instead of stretching.
+ */
+const ACTION = 'flex justify-end';
+---
+
+<BaseLayout meta={platform.meta} nav={global.nav} footer={global.footer}>
+  <Hero {...platform.hero} wordmarkText={global.wordmark} />
+
+  <section class={BOARD}>
+    <StageCards cards={platform.stages} size="large" />
+  </section>
+
+  <section class={ENQUIRY}>
+    <SectionHeading heading={platform.enquiry.heading} as="h2" />
+    <div class={ACTION}>
+      <Button label={platform.enquiry.action.label} href={platform.enquiry.action.href} />
+    </div>
+  </section>
+</BaseLayout>

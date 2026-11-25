@@ -63,6 +63,16 @@ const siteUrl = getSiteUrl();
 const live = isLive();
 const contactEmail = getContactEmail();
 const ogImage = siteUrl !== null;
+
+/**
+ * The route being rendered, written the way the navigation links are written: their `href`s carry
+ * no trailing slash, while the static build reports `/platform/` for the page at `/platform`, so
+ * the two shapes never match and no item would be marked. Stripping the slashes here gives the
+ * header the value its own contract expects — a link whose `href` equals `current` is the page
+ * being read — so the item carries both the underline and `aria-current="page"` (AAP 0.6.4,
+ * 0.8.1; rule B-3). The root route has no slash to strip and keeps its one, `/`.
+ */
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
 ---
 
 <html lang="en">
@@ -81,7 +91,7 @@ const ogImage = siteUrl !== null;
     <Header
       nav={nav}
       cta={global.headerAction}
-      current={Astro.url.pathname}
+      current={currentPath}
       labels={{ open: ui.menuOpen, close: ui.menuClose }}
       wordmark={global.wordmark}
     />

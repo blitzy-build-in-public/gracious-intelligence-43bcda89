@@ -1,0 +1,52 @@
+---
+/**
+ * The bracketed mono eyebrow that opens a section — the `[ THE GAP ]`, `[ FAQ ]` shape of
+ * AAP 0.2.3 — drawn around specification copy and nothing else (AAP 0.6.2, 0.8.1, rule W-1).
+ *
+ * The word is the element's only content. The two brackets, and the gap that separates each one
+ * from the word, belong to the `eyebrow` class in `src/styles/theme.css` (AAP 0.6.6), so the DOM
+ * holds the string exactly as the content layer writes it: no bracket character, no padding and
+ * no JavaScript casing enters it. That separation is what lets the copy-fidelity check compare
+ * DOM text against the specification directly, and it is why this component composes class names
+ * rather than declaring any geometry of its own.
+ *
+ * Upper case is presentation, not copy. `text` keeps the specification's own case and
+ * `.mono-uppercase` transforms it for display, which is the same division the navigation and the
+ * button labels use.
+ *
+ * Tone is the ink, and only the ink: the design reference swaps one fill across the whole label
+ * instead of varying the component, and the bracket never takes a colour the word does not. Each
+ * tone here is the ink the ground it sits on needs. `ink` is Chocolate on the Cream page ground
+ * (17.08:1). `muted` is Coffee Bean, the darkest tertiary ink that still carries text on Cream
+ * (about 7.3:1) — never Khaki, which measures 2.51:1 there and so draws lines only (AAP 0.6.4,
+ * rule B-3). `inverse` is Cream, for the two dark bands, where Cream is the ink.
+ *
+ * The label is not interactive, so it takes no focus ring and no tab stop, and it is not an
+ * island: one static `<span>`, with no script, no framework import and no request (rules B-1,
+ * W-2).
+ */
+
+interface Props {
+  /** The label's word, exactly as the specification writes it and in its own case. */
+  text: string;
+  /** The ink for the ground the label sits on; defaults to the Cream page ground's primary ink. */
+  tone?: 'ink' | 'muted' | 'inverse';
+}
+
+const { text, tone = 'ink' } = Astro.props;
+
+/**
+ * One ink per tone, keyed by the prop's own union, so a tone added to `Props` without an ink here
+ * fails the type check rather than rendering a label the page cannot see.
+ */
+const TONE_CLASS: Record<NonNullable<Props['tone']>, string> = {
+  ink: 'text-ink-chocolate',
+  muted: 'text-ink-coffee',
+  inverse: 'text-ink-cream',
+};
+
+/** The type rung, the drawn brackets with their both-side gaps, and the upper-case presentation. */
+const LABEL = 'eyebrow mono-uppercase type-button-1';
+---
+
+<span class={`${LABEL} ${TONE_CLASS[tone]}`}>{text}</span>

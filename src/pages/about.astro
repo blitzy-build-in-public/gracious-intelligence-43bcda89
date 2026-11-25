@@ -1,0 +1,102 @@
+---
+/**
+ * `/about` — A5's about page, composed from the site's section components (AAP 0.4.2, 0.8.4).
+ *
+ * Six regions in the specification's order: the page top, the Story block, the Vision and Mission
+ * pair, the conditional Why now block, the conditional founder block and the pilot call. Every
+ * string arrives from `src/content/about.ts`, with the company name from `global.ts`, so this file
+ * holds no user-visible literal of its own and a copy edit changes the built page without touching
+ * it (AAP 0.4.3, 0.7.2; rule W-1).
+ *
+ * Two blocks are conditional and render nothing at all when their switch is off: Why now behind
+ * `sourceConfirmed`, which stays false until the owner confirms the figures' source, and the founder
+ * block behind a non-empty `founderBio`. Both components return before emitting markup, so the page
+ * carries no empty section, no placeholder and no gap where a switched-off block would have stood
+ * (AAP 0.7.4; rule B-4) — which is why neither is wrapped in anything here.
+ *
+ * Two sections the design reference draws are deleted rather than filled. It puts a "be a model"
+ * form between the Vision and Mission pair and its milestone timeline, and four numbered step rows
+ * under the heading this page closes with; A5 gives neither an entry, and no string, photograph or
+ * label of the reference's own may reach the output, so both are absent rather than replaced (rule
+ * W-1). Removing the form removes height and no padding, so the ground between the pair and the Why
+ * now block is exactly the two sections' own facing padding and nothing stands in for the form.
+ *
+ * The Story block is the one region that is not a section component: `SectionHeading` is a heading
+ * with one lead and carries no rhythm of its own, so the `section` below supplies the reference's
+ * padding pair — 160 above and 128 below at the wide width, 60 at both at the narrow one. 128 is not
+ * a step of the spacing scale, and the two nearest steps are equally far away, so the bottom takes
+ * the lower one on the rule that padding snaps down, `space-120` (AAP 0.2.2, PA-1).
+ *
+ * A5 gives the Story block one Text where the reference draws two paragraph slots. That single Text
+ * is handed to the heading's one lead and rendered whole, so the second slot stays empty rather than
+ * being filled with invented or borrowed copy (AAP 0.7.4, 0.8.4; rules W-1, B-4).
+ *
+ * Static markup throughout: the route is emitted once by the build, opens no request handler,
+ * hydrates no island and follows no link off this site — every action it renders targets one of the
+ * eight pages (rules W-2, B-1). The page reads no configuration of its own; the layout resolves it
+ * through `src/lib/env.ts`, the only module that reads it (rule B-2).
+ */
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ValuesPair from '../components/ValuesPair.astro';
+import WhyNow from '../components/WhyNow.astro';
+import FounderBlock from '../components/FounderBlock.astro';
+import PilotCall from '../components/PilotCall.astro';
+
+import { about } from '../content/about.ts';
+import { global } from '../content/global.ts';
+
+/**
+ * The Story section's rhythm, from the reference's own padding pair (AAP 0.8.4, PA-1): the content
+ * column, then 60 above and below at the narrow width and 160 above with 120 below at the wide one.
+ * The wide steps come from the theme's `--breakpoint-wide` token through Tailwind's `wide:` variant,
+ * the same declaration the theme's own media query reads, so the 900 breakpoint has one source
+ * (PA-5). The blocks around it carry their own padding, so no margin is placed on any of them.
+ */
+const STORY = 'content pt-60 pb-60 wide:pt-160 wide:pb-120';
+---
+
+<BaseLayout meta={about.meta} nav={global.nav} footer={global.footer}>
+  {/*
+    A5's top block, mapped member for member onto the hero's props: the heading that becomes the
+    page's only `h1`, its lead paragraph, the `top` panel that fills the reference's bracket-framed
+    media slot, and the display wordmark the About top block carries (AAP 0.2.4, 0.8.1). The name is
+    handed over separately because `Wordmark` renders a string only from its `text` prop, and A0
+    keeps the one definition of it (AAP 0.7.2).
+  */}
+  <Hero {...about.hero} wordmarkText={global.wordmark} />
+
+  {/* Story: A5's heading and its one Text, rendered whole in the heading's one lead slot. */}
+  <section class={STORY}>
+    <SectionHeading as="h2" heading={about.story.heading} lead={about.story.text} />
+  </section>
+
+  {/*
+    Vision, then Mission, each card carrying its own authored panel. `ValuesPair` checks that the two
+    arrive in that order, so the declarations below are not re-sorted here (AAP 0.2.4, 0.8.1).
+  */}
+  <ValuesPair items={about.values.items} media={about.values.media} />
+
+  {/*
+    Why now: the figures, their heading and the source line that attributes them, as one unit behind
+    A5's switch. With `sourceConfirmed` false — the default — the component emits nothing at all, so
+    the figures cannot appear unqualified and no heading or gap is left behind (AAP 0.7.4; rule B-4).
+  */}
+  <WhyNow data={about.whyNow} show={about.sourceConfirmed} />
+
+  {/* The founder block, rendered only once A5 supplies a biography; it adds no heading of its own. */}
+  <FounderBlock bio={about.founderBio} />
+
+  {/*
+    The pilot call that closes the page, where the reference holds its numbered step rows: A5's
+    heading, its one text line and the enquiry action. The rows are not rendered, because A5 gives
+    them no entry and no numeral may be invented for them (AAP 0.8.4; rules W-1, B-4).
+  */}
+  <PilotCall
+    heading={about.pilotCall.heading}
+    text={about.pilotCall.text}
+    action={about.pilotCall.action}
+  />
+</BaseLayout>

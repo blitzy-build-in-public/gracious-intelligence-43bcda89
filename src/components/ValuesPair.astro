@@ -96,12 +96,16 @@ if (
 const LAYOUT = 'content py-60 wide:pt-80 wide:pb-160';
 
 /**
- * Two equal cards side by side once the design has the width for it, one column below that, and the
- * `space-40` gutter between them either way (AAP 0.2.3, 0.8.4). A grid rather than a flex row keeps
- * the two equal and stretches each card to the taller one, so the two hairlines land on the same
- * line however differently the two bodies wrap — the alignment the design draws.
+ * Two equal cards side by side at every width, which is what the design draws at both of its
+ * artboards: the pair stays two-up at 390 where it narrows to 167.5 each on a 23-pixel gutter, and
+ * at the wide width it takes the content column on the `space-40` gutter (AAP 0.2.1, 0.8.4). The
+ * narrow gutter is the design's 23 taken to the nearest step, `space-24`. A grid rather than a flex
+ * row keeps the two equal and stretches each card to the taller one, so the two hairlines land on
+ * the same line however differently the two bodies wrap — the alignment the design draws. Stacking
+ * them below the wide breakpoint would lengthen this band as the viewport narrows, where the design
+ * shortens it.
  */
-const LIST = 'grid gap-40 wide:grid-cols-2';
+const LIST = 'grid grid-cols-2 gap-24 wide:gap-40';
 
 /**
  * One card: the hairline beneath it and its own distance above that rule — `space-16` at the narrow

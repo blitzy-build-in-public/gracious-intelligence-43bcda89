@@ -41,6 +41,11 @@ export interface PilotBandCopy {
  * belongs to another business and no string may be reconstructed from the plan. The launch guard
  * keeps the marker out of a published build (AAP 0.9.5, WT-10), so the gap stays visible to the
  * owner instead of shipping.
+ *
+ * Rule B-3 requires the band's control to name its purpose, and its label is the marker while
+ * A1's copy is absent, so the button does not yet say what it does; the departure stands because
+ * inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
+ * any published build.
  */
 export const pilot: PilotBandCopy = {
   heading: 'TO BE PROVIDED',

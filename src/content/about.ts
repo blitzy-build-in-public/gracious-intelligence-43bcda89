@@ -99,6 +99,11 @@ export interface AboutCopy {
  * which keeps the gap visible to the owner instead of shipping it. Three values carry no
  * marker, because the AAP fixes them or gives them a defined default: the two conditional
  * switches below, and the source line's organisation (AAP 0.7.6).
+ *
+ * Rule B-3 requires the pilot call's action to name its purpose, and its label is the marker
+ * while A5's copy is absent, so the link does not yet say what it does; the departure stands
+ * because inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker
+ * out of any published build.
  */
 export const about: AboutCopy = {
   meta: {

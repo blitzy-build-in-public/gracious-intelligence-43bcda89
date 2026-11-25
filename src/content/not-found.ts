@@ -45,6 +45,11 @@ export interface NotFoundCopy {
  *
  * The link target is fixed by the route set rather than by the document, so `href` is `/` in
  * every configuration.
+ *
+ * Rule B-3 requires the way back to name its purpose, and its label is the marker while A8's
+ * copy is absent, so the link does not yet say where it leads; the departure stands because
+ * inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
+ * any published build.
  */
 export const notFound: NotFoundCopy = {
   meta: { title: "TO BE PROVIDED" },

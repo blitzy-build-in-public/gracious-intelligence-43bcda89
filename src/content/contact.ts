@@ -116,6 +116,11 @@ export interface ContactCopy {
  * the gap stays visible instead of shipping (AAP 0.9.5, WT-10). The five values the AAP itself
  * fixes are set exactly: the sending label, the mailto label, the fallback text (AAP 0.4.4), the
  * page-top illustration and the privacy link's same-site target.
+ *
+ * Rule B-3 requires the privacy link's purpose to be determinable from its accessible name, and
+ * its label is the marker while A6's copy is absent, so the link inside the consent statement
+ * does not yet name its purpose; the departure stands because inventing a label would break
+ * Rules W-1 and B-4 and the launch guard keeps the marker out of any published build.
  */
 export const contact: ContactCopy = {
   meta: {

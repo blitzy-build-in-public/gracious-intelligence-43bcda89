@@ -13,6 +13,11 @@
  * `scripts/launch-check.ts` refuses to let a live build publish it (AAP 0.9.5, WT-10). The two
  * values the action plan itself fixes — the top block's panel and the enquiry action's target —
  * are set exactly, because neither is a string the specification owns.
+ *
+ * Rule B-3 requires the enquiry action to name its purpose, and its label is the marker while
+ * A2's copy is absent, so the button does not yet say what it does; the departure stands because
+ * inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
+ * any published build.
  */
 import type { HeroCopy, Link, PageMeta } from './global.ts';
 import { stages } from './shared/stages.ts';

@@ -231,6 +231,10 @@ export const home: HomeCopy = {
     statusLabel: global.status.sovereignty,
     // The band's control leads to the page that sets the controls out in full; the label A1 gives
     // it is not available, so the target is the structural part and the label carries the marker.
+    // Rule B-3 requires the band's control to name its purpose, and its label is the marker while
+    // A1's copy is absent, so the link does not yet say what it does; the departure stands because
+    // inventing a label would break Rules W-1 and B-4 and the launch guard keeps the marker out of
+    // any published build.
     action: { label: 'TO BE PROVIDED', href: '/sovereignty' },
   },
   grace: {

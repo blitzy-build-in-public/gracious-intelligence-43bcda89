@@ -35,6 +35,11 @@ export interface StageCard {
  * arrives: nothing was invented in their place, and the launch guard keeps the
  * marker out of a published build. The status labels are fixed copy and carry no
  * marker.
+ *
+ * Rule B-3 requires card 01's link to name its purpose, and until A1's copy arrives
+ * that card's number, name and line are the marker, so the link does not yet say
+ * where it leads; the departure stands because inventing a label would break Rules
+ * W-1 and B-4 and the launch guard keeps the marker out of any published build.
  */
 export const stages: StageCard[] = [
   {

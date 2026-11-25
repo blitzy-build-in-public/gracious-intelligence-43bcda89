@@ -124,6 +124,12 @@ export interface GlobalCopy {
  * `scripts/launch-check.ts` refuses to let a live build publish it (AAP 0.9.5, WT-10). The
  * strings the AAP itself fixes are set exactly: the wordmark, the header call to action (FR-3,
  * AAP 0.6.2) and the two status labels (AAP 0.7.5).
+ *
+ * Rule B-3 requires each link's purpose to be determinable from its accessible name, and the
+ * five navigation labels and the two footer-link labels are identical while the marker stands,
+ * so link purpose is not determinable (WCAG 2.2 AA SC 2.4.4); the departure stands because no
+ * A0 copy exists, inventing one would break Rules W-1 and B-4, and the launch guard keeps the
+ * state out of any published build.
  */
 export const global: GlobalCopy = {
   wordmark: 'Gracious Intelligence',

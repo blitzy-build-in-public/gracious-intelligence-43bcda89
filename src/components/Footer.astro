@@ -1,0 +1,215 @@
+---
+/**
+ * A0's footer: the closing region of every route and the document's one `contentinfo` landmark
+ * (AAP 0.8.1, FR-3, rule B-3).
+ *
+ * Every string arrives as a prop — the footer line, the two footer links and the notice from
+ * `copy`, the five navigation links from `nav`, the brand words from `wordmark` — so the component
+ * holds no copy of its own, borrows nothing from the design file and invents nothing (rule W-1,
+ * rule B-4). The design reference's own footer carries a newsletter field, a photograph at the
+ * narrow width, a brand-mark glyph and an oversized wordmark; A0 names none of them, so none is
+ * rendered and no slot is left standing where one would have been (AAP 0.2.3, 0.2.4, rule W-1).
+ *
+ * The contact address is configuration, not content: `contactEmail` is resolved once by
+ * `src/lib/env.ts` upstream and reaches this component as a prop, so nothing here reads the
+ * environment (rule B-2). When it is absent — `null`, or empty after trimming — the address
+ * appears nowhere at all: no placeholder address, no dead `mailto:` link and no label that would
+ * announce one (rule B-4, AAP 0.9.3). Nothing is fetched, no font or image is requested and the
+ * component is not an island — no script, no framework import, no hydration — so the footer reads
+ * whole with JavaScript disabled (rules B-1, W-2).
+ *
+ * Presentation is the design system's throughout (AAP 0.2.3, 0.6.3). The root is `.content`, the
+ * page's own content column: 358 wide inside 16-pixel insets at the narrow width and 1344 inside
+ * 48 at the wide one, centred however much wider the viewport gets. Desktop reads as the template's
+ * footer does — one row, a left column holding the footer line at a third of the column and the
+ * three link groups at the right — and the narrow width stacks the same three groups into the
+ * template's own two-column mobile link matrix, with the contact group beneath it. The left column
+ * keeps the 160 the template sets below its address block, which is the space its newsletter
+ * occupied. Every gap, step and rung below is a token; no length, colour or size is written here.
+ *
+ * There is no rule, fill, radius or shadow: the footer stands on the page's own Cream ground with
+ * the template's structure and none of its chrome, because the design draws no divider inside its
+ * footer at either width and declares no elevation anywhere (AAP 0.2.2, 0.6.3). Ink is the
+ * palette's own pairing on Cream — Chocolate for the links at 17.08:1 and Coffee Bean for the
+ * footer line and the notice at 7.25:1 — never Khaki, which measures 2.51:1 there and draws
+ * decoration only (rule B-3, AAP 0.6.4).
+ */
+import Wordmark from './Wordmark.astro';
+import type { FooterCopy, Link } from '../content/global.ts';
+
+interface Props {
+  /**
+   * A0's own footer copy: the footer line, the two footer links and the notice. The navigation
+   * links and the configured address are separate props because neither is content — one is
+   * defined once for the header too, the other comes from configuration only (AAP 0.7.2).
+   */
+  copy: FooterCopy;
+  /**
+   * The five navigation links, the same definition the header and the mobile menu render, so the
+   * header and the footer can never drift apart (A-4, AAP 0.4.3).
+   */
+  nav: Link[];
+  /**
+   * The one contact address, taken from the configured public value, or `null` when none is set.
+   * Empty and whitespace-only values are treated as absent below, because either would produce a
+   * `mailto:` link with no target (rule B-4).
+   */
+  contactEmail: string | null;
+  /**
+   * The brand words, passed through to `Wordmark` so the footer carries the same name the header
+   * does. An extension to the interface AAP 0.8.1 declares, recorded by this file: the wordmark
+   * renders its words from a prop and `FooterCopy` holds no name, so the caller supplies
+   * `global.wordmark` (AAP 0.4.3, 0.7.2).
+   */
+  wordmark: string;
+}
+
+const { copy, nav, contactEmail, wordmark } = Astro.props;
+
+/**
+ * The address as it will be shown and linked, or the empty string when there is none. Trimming is
+ * what keeps a configured-but-blank value from becoming a link that leads nowhere (rule B-4).
+ */
+const address = (contactEmail ?? '').trim();
+const hasAddress = address !== '';
+
+/**
+ * The footer box: the page's content column, then the template's own top padding — `space-60`
+ * above at the narrow width and `space-80` at the wide one (AAP 0.2.3) — and no padding below it,
+ * because the wordmark closes the page flush at the bottom edge as the template's does.
+ *
+ * `.content` supplies the inline inset, and its 48 is a deliberate 2-pixel departure from the
+ * frame's 50: the design's page inset is off the 4-pixel grid the spacing scale is built on, so it
+ * takes the nearest step, which is how the whole scale stays expressible as tokens (AAP 0.6.3,
+ * PA-1). Declaring 50 instead would need either a raw length or a twenty-second spacing token off
+ * that grid, and neither may exist.
+ *
+ * The column gap is `space-60` at both widths. The template declares it at its narrow root; its
+ * wide frame declares none, because there the gap is produced by a copyright row pinned to the
+ * bottom of the menu column with `space-between`. A0 gives this footer no such row, so a zero gap
+ * would press the wordmark against the last link; the token stands in for the slack the pinned row
+ * used to create.
+ */
+const LAYOUT = 'content flex flex-col gap-60 pt-60 wide:pt-80';
+
+/**
+ * The row that holds the footer line beside the link groups. It stacks at the narrow width and
+ * becomes one row from the theme's own 900 breakpoint (PA-5), with the two columns pushed to
+ * either end of the content column the way the template distributes its two blocks.
+ */
+const ROW = 'flex flex-col gap-40 wide:flex-row wide:items-start wide:justify-between';
+
+/**
+ * The left column: the footer line, its parts at `space-20` as the template sets its contact lines,
+ * a third of the content column (the template's 448 of 1340), and `space-160` below it where the
+ * template places the newsletter block A0 does not name (AAP 0.2.3).
+ */
+const LINE_COLUMN = 'flex flex-col gap-20 wide:w-1/3 wide:pb-160';
+
+/** The footer line itself: the body rung, in the palette's secondary ink on Cream (7.25:1). */
+const LINE = 'type-body-3 text-ink-coffee';
+
+/**
+ * The link groups. At the narrow width the two link columns hug their own content and are pushed
+ * to either edge of the column by `justify-between`, which is how the design distributes its mobile
+ * matrix: the right-hand column ends flush with the content edge rather than at an equal fraction
+ * of it. The contact block takes the whole width, so it opens the next line, and `gap-y-64` is the
+ * design's separation between two matrix rows. From the wide breakpoint the three groups stand
+ * side by side at the template's `space-116` gutters with `space-20` between links.
+ *
+ * The wide row is sized by its own content rather than given a fixed track. The template draws its
+ * menu at a fixed 687 of 1340, but that track is fitted to four-word link labels of its own: ours
+ * differ in length, and a rigid half of the column is narrower than three groups plus two gutters
+ * as soon as one label or address is long, which pushed the last group past the content edge at the
+ * breakpoint. Hugging the content keeps the design's proportion where the labels fit it — three
+ * groups and two gutters measure about 50 per cent of the column — and `flex-wrap` lets a group fall
+ * to a second line at intermediate widths instead of forcing the page wider than its viewport.
+ */
+const MENU =
+  'flex flex-wrap justify-between gap-y-64 wide:items-start wide:gap-116';
+const LIST = 'flex flex-col gap-12 wide:gap-20';
+
+/**
+ * The footer's third group: the contact address when one is configured, then the notice. It takes
+ * the full width at the narrow width so it always opens the matrix's second line instead of being
+ * squeezed into a link column.
+ */
+const CONTACT = 'flex w-full flex-col gap-20 wide:w-auto';
+
+/**
+ * One link face for the whole footer: the control-label rung — Geist Mono 500 at its mobile and
+ * desktop steps — with the upper case supplied in CSS, so the DOM text stays exactly as the content
+ * layer writes it (AAP 0.6.6). Chocolate on Cream measures 17.08:1 (rule B-3).
+ */
+const LINK = 'type-button-1 mono-uppercase text-ink-chocolate';
+
+/**
+ * The address and the two footer links carry the design's underline, the mark its own email,
+ * phone-terms and privacy runs are drawn with (AAP 0.2.3). It is the only affordance the footer
+ * draws, so no hover state is invented around it (AAP 0.15.2).
+ */
+const UNDERLINED_LINK = `${LINK} underline`;
+
+/** The notice: the smallest mono rung, in the same secondary ink as the footer line. */
+const NOTICE = 'type-button-2 text-ink-coffee';
+---
+
+<footer class={LAYOUT}>
+  <div class={ROW}>
+    <div class={LINE_COLUMN}>
+      <p class={LINE}>{copy.line}</p>
+    </div>
+    <!--
+      The navigation links and the two footer links are lists inside this footer rather than a
+      second `<nav>`: a page already carries the header's navigation landmark, and a second one
+      with no name of its own would leave the two indistinguishable to assistive technology. As
+      list items they keep the theme's 24-by-24 minimum target as well, which a bare anchor would
+      not (rule B-3).
+    -->
+    <div class={MENU}>
+      <ul class={LIST}>
+        {
+          nav.map((item) => (
+            <li>
+              <a class={LINK} href={item.href}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class={LIST}>
+        {
+          copy.links.map((item) => (
+            <li>
+              <a class={UNDERLINED_LINK} href={item.href}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class={CONTACT}>
+        {
+          hasAddress && (
+            <ul class={LIST}>
+              <li>
+                <a class={UNDERLINED_LINK} href={`mailto:${address}`}>
+                  {address}
+                </a>
+              </li>
+            </ul>
+          )
+        }
+        <p class={NOTICE}>{copy.notice}</p>
+      </div>
+    </div>
+  </div>
+  <!--
+    The wordmark closes the footer, which is where the design reference places it: its own wordmark
+    band is the last band of the footer, below the columns. The component's content list reads as a
+    description of what the footer carries, not as a different order, because the geometry is what
+    fixes placement and a reading order that disagreed with the visual one would be its own defect.
+  -->
+  <Wordmark place="footer" text={wordmark} />
+</footer>

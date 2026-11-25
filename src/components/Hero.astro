@@ -1,0 +1,264 @@
+---
+/**
+ * The page top of every route: the wordmark, the bracketed label, the page's single `h1`, the lead
+ * paragraph, the status label, the action and the bracket-framed panel (AAP 0.8.1, 0.8.4).
+ *
+ * The component holds no copy. Every string arrives as a prop, so `src/content` stays the one
+ * source of user-visible text and this file cannot invent, shorten or re-case a word (rules W-1,
+ * B-4; AAP 0.4.3, 0.7.2). It is server-rendered markup: no script, no hydration directive and no
+ * framework import, so the block reads with scripts disabled (rule W-2), and it reaches no host but
+ * this one (rule B-1).
+ *
+ * The design reference supplies structure and values, never content. What carries over is the
+ * block's composition and its measurements: the section's padding, the narrow and wide gaps between
+ * its rows, the justified lead, the right-aligned display wordmark and the bracket frame around the
+ * media slot. What does not is everything belonging to the template's own business — its strings,
+ * its photographs, its logo mark, its centred mono meta line and both of its parenthesis vectors
+ * (AAP 0.2.1, 0.2.4).
+ *
+ * Its hero row also places a vertical navigation column beside the header block. Navigation is the
+ * global `Header`'s, rendered once per page by the base layout, so this component renders the header
+ * block alone: a second navigation landmark and a second copy of the five links on one page are
+ * what reproducing that column would cost, and the global shell already owns both (FR-3, A0).
+ */
+import Button from './Button.astro';
+import IllustrationPanel from './IllustrationPanel.astro';
+import Label from './Label.astro';
+import StatusLabel from './StatusLabel.astro';
+import Wordmark from './Wordmark.astro';
+
+import type { Link, PanelVariant } from '../content/global.ts';
+
+interface Props {
+  /** The bracketed eyebrow, when the page's top block opens with one — `HeroCopy.label`. */
+  label?: string;
+  /**
+   * The page's headline, and the text of the page's only `h1`. Required: no route reaches this
+   * component without one, and a page whose heading is missing has nothing to announce itself with
+   * (rule B-3).
+   */
+  heading: string;
+  /** The lead paragraph, set justified beneath the headline — `HeroCopy.text`. */
+  text?: string;
+  /**
+   * The block's one call to action. A `Link` whose target is blank renders no control at all,
+   * because a button that leads nowhere is exactly the dead control rule B-4 forbids.
+   */
+  action?: Link;
+  /**
+   * One of the nine authored panels, framed; `null` renders no frame, no panel and no gap where
+   * one would have been. It is decoration and carries no text alternative (AAP 0.2.4, rule B-3).
+   */
+  illustration?: PanelVariant | null;
+  /** The status label that qualifies the page's claim, where the page makes one (AAP 0.7.5). */
+  statusLabel?: string;
+  /** Whether the company name opens the block — true on the home page's top block alone. */
+  wordmark?: boolean;
+  /**
+   * The company name, exactly as A0 writes it. An extension to the interface AAP 0.8.1 records for
+   * this component: `Wordmark.astro` renders a string only from its `text` prop, so a hero that
+   * shows the name has to hand the words in (AAP 0.7.2). It is required wherever `wordmark` is
+   * true, and a blank value renders no wordmark rather than an empty line of type.
+   */
+  wordmarkText?: string;
+}
+
+const {
+  label,
+  heading,
+  text,
+  action,
+  illustration,
+  statusLabel,
+  wordmark,
+  wordmarkText,
+} = Astro.props;
+
+/**
+ * Each optional member is judged on its trimmed value, the way the blocks that compose this site
+ * treat a field the owner has not filled: a value that is blank counts as absent, and the member
+ * renders nothing at all rather than an empty element and the gap it would leave. The strings that
+ * do render are the content layer's own, unaltered — trimming decides presence and never re-shapes
+ * copy.
+ */
+const labelText = label ?? '';
+const hasLabel = labelText.trim() !== '';
+
+const bodyText = text ?? '';
+const hasBody = bodyText.trim() !== '';
+
+const statusText = statusLabel ?? '';
+const hasStatus = statusText.trim() !== '';
+
+const wordmarkWords = wordmarkText ?? '';
+const hasWordmark = wordmark === true && wordmarkWords.trim() !== '';
+
+const actionLink: Link | null =
+  action !== undefined && action.href.trim() !== '' && action.label.trim() !== '' ? action : null;
+
+const panel: PanelVariant | null = illustration ?? null;
+
+/**
+ * The heading rungs of the design's type scale, largest first, each with the most characters it
+ * sets inside the block's line budget (AAP 0.2.2, 0.6.3).
+ *
+ * The budget is four lines in the narrow column of the 390 artboard — 358 wide once its insets are
+ * taken off — at an average advance of about half the type size in Urbanist 500: about 22
+ * characters a line at the 32 step of `heading-1`, so about 90 in four lines, and about 30 a line at
+ * the 24 step of `heading-2`, so about 140 in five. The narrow step governs, because one headline
+ * has to hold at both widths, where the wide column sets the same copy in roughly three lines.
+ *
+ * A headline steps down only when its own copy needs more lines than the budget allows before it;
+ * no size between rungs is invented, and the smallest rung admits every headline, which is what
+ * keeps a long one from stepping below the scale. The step is deliberately late rather than eager:
+ * the page's `h1` sets the page's hierarchy, and a headline that dropped a rung it did not need
+ * would fall below the section headings beneath it.
+ */
+type Rung = 'type-heading-1' | 'type-heading-2' | 'type-heading-3';
+
+const LADDER: readonly (readonly [Rung, number])[] = [
+  ['type-heading-1', 90],
+  ['type-heading-2', 140],
+  ['type-heading-3', Number.POSITIVE_INFINITY],
+];
+
+const RUNG: Rung =
+  LADDER.find(([, budget]) => heading.trim().length <= budget)?.[0] ?? 'type-heading-3';
+
+/**
+ * The block's geometry: the page's content column, then the foot the reference gives its own page
+ * top — `space-32` below the block at the narrow width and `space-40` at the wide one, and
+ * `space-24` above it at both (AAP 0.8.4). The inset and the column come from `.content`, so the two
+ * artboard widths have one source (PA-1), and the wide step reads the theme's `--breakpoint-wide`
+ * token through Tailwind's `wide:` variant, the same declaration the theme's own media query reads,
+ * so the 900 step moves as one line (PA-5).
+ */
+const LAYOUT = 'content pt-24 pb-32 wide:pb-40';
+
+/**
+ * The gap between the block's rows: `space-40` at the narrow width and `space-136` at the wide one,
+ * which is the hero gap the plan measures from the reference and snaps to the grid — its 138, taken
+ * to `space-136` (AAP 0.2.1, PA-1). A row that is absent takes its gap with it, so a block without a
+ * wordmark opens on its copy rather than on a void.
+ */
+const STACK = 'flex flex-col gap-40 wide:gap-136';
+
+/**
+ * The wordmark's alignment is the consumer's, which is why `Wordmark.astro` sets none: the reference
+ * right-aligns the name in the page top and left-aligns it in the footer, and this is the page top.
+ */
+const WORDMARK = 'text-end';
+
+/**
+ * The copy stack, one `space-24` step apart: the reference gives its top block that step between a
+ * row and the next, and no member of this stack carries a spacing of its own.
+ */
+const COPY = 'flex flex-col gap-24';
+
+/** The headline at its rung, with its lines shared out evenly rather than left with one lone word. */
+const HEADING = `${RUNG} text-balance`;
+
+/**
+ * The lead at the body-1 rung — Urbanist 400, 16 at the narrow width and 32 at the wide one, leading
+ * 1.5 — justified, which is the alignment the reference draws for this slot and the reason its lines
+ * end flush (AAP 0.6.3). The ink is the page's own, Chocolate on Cream at 17.08:1, set once in the
+ * theme's base layer (rule B-3).
+ *
+ * The measure is what makes the justification read. The reference constrains this paragraph to a
+ * narrow column beside its own wordmark, at both widths: 318 wide at its 16 step and 158 at its 10,
+ * which is about twenty and about sixteen times the type size respectively. This block stacks the
+ * paragraph under the headline instead of floating it in the template's empty middle, so the measure
+ * is stated in that proportion rather than copied as a pixel width — about seventeen times the type
+ * size at the narrow width and twenty-one at the wide one, the latter because a full column at the
+ * body-1 step would otherwise run to eighty characters a line.
+ *
+ * BLITZY [TYPOGRAPHY]: the reference sets this paragraph on its Body 3 style; the build's body-1 rung
+ * is the slot's mapping, so the paragraph is deliberately one size step above the reference rather
+ * than below it, and the measure above is stated relative to the type so it survives that step.
+ */
+const PARAGRAPH = 'type-body-1 text-justify max-w-3/4 wide:max-w-1/2';
+
+/**
+ * The action sits in a row of its own so the control keeps its own width: a flex column would stretch
+ * it across the column, and the reference draws a button that hugs its label.
+ */
+const ACTION = 'flex';
+
+/**
+ * The panel's frame, and the geometry that stands in for the reference's two parenthesis vectors.
+ *
+ * The reference brackets its media between filled crescents that overhang it at both ends, stand the
+ * frame's gap away from it and bow away from it through their height (AAP 0.2.4). Rule W-1 keeps
+ * those vectors out of the output and AAP 0.2.4 ships no asset from the file at all, so the frame is
+ * built from geometry instead, and the three values it needs are the reference's own: the band's
+ * thickness, the frame's gap and the crescent's width.
+ *
+ * Each bracket is a rule stretched to the row's full height — the media plus the frame's overhang at
+ * each end — drawn as the start or end edge of a box exactly as wide as the reference's crescent, and
+ * given a full radius on its outward side. A radius that large on a box this narrow is clamped to
+ * half its width, which is what turns a straight edge into an arc: the band leaves the media's
+ * corners and bows away from it at mid-height by half the box's width, and the media then stands
+ * that half-width plus the frame's gap clear of the band's ink — the reference's own clearance at the
+ * media's midline. The band thins at the narrow width as the reference's does, from `space-12` to
+ * `space-4`, and the overhang from `space-32` to `space-8`, both of which are its values taken to the
+ * grid.
+ *
+ * Khaki is the rule colour the manifest gives decoration on Cream, where it carries no text and
+ * identifies no control (AAP 0.6.4). The brackets are hidden from assistive technology and hold no
+ * accessible name, because the frame is decoration around decorative artwork — neither adds a tab
+ * stop nor an entry in the reading order (rule B-3). The frame is placed flush with the right inset
+ * at the wide width, where the reference puts it, and at the start of the column at the narrow one.
+ *
+ * BLITZY [DESIGN_SYSTEM_GAP]: the reference's media slot measures 382 by 216 at the design width and
+ * 120 by 80 at the narrow one. 120 by 80 is a pair of spacing steps and is carried exactly; 382 by
+ * 216 is not, so the nearest pair holding its ratio, `space-240` by `space-136`, stands in at the
+ * wide width. The frame's proportions, its gaps and its overhang therefore match the reference while
+ * the panel itself takes 29 per cent of the column where the reference's takes 40, because the
+ * spacing scale stops at `space-240` and no token reaches 382.
+ */
+const FRAME = 'flex items-center justify-start gap-12 wide:justify-end';
+
+const PANEL = 'my-8 h-80 w-120 overflow-hidden rounded-media wide:my-32 wide:h-136 wide:w-240';
+
+const BRACKET_START =
+  'w-20 self-stretch rounded-s-full border-s-(length:--spacing-4) border-khaki wide:w-64 wide:border-s-(length:--spacing-12)';
+
+const BRACKET_END =
+  'w-20 self-stretch rounded-e-full border-e-(length:--spacing-4) border-khaki wide:w-64 wide:border-e-(length:--spacing-12)';
+---
+
+<section class={LAYOUT}>
+  <div class={STACK}>
+    {
+      hasWordmark && (
+        <div class={WORDMARK}>
+          <Wordmark place="hero" text={wordmarkWords} />
+        </div>
+      )
+    }
+    <div class={COPY}>
+      {hasLabel && <Label text={labelText} tone="ink" />}
+      <h1 class={HEADING}>{heading}</h1>
+      {hasBody && <p class={PARAGRAPH}>{bodyText}</p>}
+      {hasStatus && <StatusLabel text={statusText} tone="default" />}
+      {
+        actionLink !== null && (
+          <div class={ACTION}>
+            <Button label={actionLink.label} href={actionLink.href} tone="default" />
+          </div>
+        )
+      }
+    </div>
+    {
+      panel !== null && (
+        <div class={FRAME}>
+          <span aria-hidden="true" class={BRACKET_START} />
+          <div class={PANEL}>
+            <IllustrationPanel variant={panel} />
+          </div>
+          <span aria-hidden="true" class={BRACKET_END} />
+        </div>
+      )
+    }
+  </div>
+</section>

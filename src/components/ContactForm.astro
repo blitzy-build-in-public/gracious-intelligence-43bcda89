@@ -1,0 +1,776 @@
+---
+/**
+ * The site's one form: the pilot enquiry block on `/contact` (AAP 0.8.1, FR-6, WT-07).
+ *
+ * Three states, chosen at build time by the page from `src/lib/env.ts` (AAP 0.9.3, rule W-2): the
+ * form when an endpoint is configured, the mailto link when only a contact address is, and the
+ * fallback text when neither is. The state arrives as a prop rather than being resolved here, so
+ * the configured values keep one owner and this file reads no environment variable (rule B-2).
+ *
+ * Copy-free. Every label, message, heading and link text arrives in `copy` from
+ * `src/content/contact.ts`; the only strings below are the identifiers and protocol tokens the
+ * markup needs — control ids, field names, input types, `autocomplete` hints, the form's method and
+ * the `mailto:` prefix (rule W-1, AAP 0.7.2). A placeholder never stands in for a label: the design
+ * reference sets its label inside the field, where it disappears the moment someone types, so the
+ * site keeps the underline and puts a visible, persistent label above every control instead
+ * (AAP 0.6.4, rule B-3).
+ *
+ * The page's only island (rule W-2). One module `<script>` at the foot of this file is bundled and
+ * hashed by the build, so it is a same-origin file the policy admits: no framework, no hydration
+ * directive, no second script. Everything the block renders is static HTML, and the two states that
+ * need no request — the mailto link and the fallback text — are complete without it.
+ *
+ * Underline construct, from the design's field primitive (AAP 0.2.3, 0.6.3): transparent fill, no
+ * top or side border, no radius, a single 1 px bottom edge. The design draws that edge in Khaki at
+ * 0.6 px; Khaki measures 2.51:1 on the Cream page and cannot identify a control there, so the edge
+ * is the manifest's `border-input` token — Taupe at 9.40:1 — and 1 px, because a sub-pixel stroke
+ * does not render consistently. The labels take Coffee Bean, the manifest's muted ink on Cream, for
+ * the same reason: the design's own label ink is the Khaki that may carry no text on this ground
+ * (AAP 0.6.4, rule B-3).
+ *
+ * Two-up rows at the wide width and one column below it, on the design's own 32 px gutter and its
+ * 32 / 20 row rhythm (AAP 0.2.1). The design pairs two of its rows and gives its last two the full
+ * column; this form does the same, so the four paired fields sit two across while the site-count and
+ * message fields span the column. The submit is right-aligned and flush with the column's right
+ * edge, as the design draws it.
+ *
+ * Everything the design reference does not draw is designed from the request and composed from the
+ * manifest's tokens (AAP 0.6.4): the consent row at a 24×24 target, the required marker, a message
+ * beside each control it belongs to, the error region above the submit, the confirmation, the
+ * sending state and the hidden honeypot. Both status colours are always paired with an icon, so no
+ * state rests on colour alone (rule B-3). This file holds no hex, no `rgb()`, no length in a style
+ * context and no `style` attribute (AAP 0.6.6), and it requests nothing from a third-party host
+ * (rule B-1).
+ */
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+import type { FormCopy } from '../content/contact.ts';
+import type { MessageKey } from '../lib/form.ts';
+
+/**
+ * The block's interface, member for member as AAP 0.8.1 declares it.
+ *
+ * `state` is the resolution the page performed over configuration, and `endpoint` and
+ * `contactEmail` are the two values it read, so this component can check that the three agree but
+ * cannot choose any of them (rule B-2).
+ */
+interface Props {
+  /** Every string the form and its two non-default states render. */
+  copy: FormCopy;
+  /** Which of the three build-time states to render (AAP 0.9.3). */
+  state: 'form' | 'mailto' | 'fallback';
+  /** The configured enquiry endpoint, or null when none is set. */
+  endpoint: string | null;
+  /** The configured contact address, or null when none is set. */
+  contactEmail: string | null;
+}
+
+const { copy, state, endpoint, contactEmail } = Astro.props;
+
+/*
+ * The state and the two configured values are checked against each other, because a page handing
+ * over a combination this block cannot render would otherwise ship a form that cannot submit, a
+ * mailto link with no address, or a fallback notice over a working endpoint. Each failure names the
+ * component and the pair it refused, so the next reader knows which page to open.
+ */
+if (state === 'form' && endpoint === null) {
+  throw new Error(
+    'ContactForm: state "form" requires an endpoint, and endpoint is null. Without one the form could not submit, so the block renders the mailto link or the fallback text instead (AAP 0.9.3, rule W-2).',
+  );
+}
+
+if (state === 'mailto' && contactEmail === null) {
+  throw new Error(
+    'ContactForm: state "mailto" requires a contact address, and contactEmail is null. The mailto link would have no target, so this combination is refused (AAP 0.9.3, rule W-2).',
+  );
+}
+
+if (state === 'fallback' && (endpoint !== null || contactEmail !== null)) {
+  throw new Error(
+    'ContactForm: state "fallback" was requested while an endpoint or a contact address is set. The fallback text reads "contact details to follow", which is false once either value exists, so this combination is refused (AAP 0.9.3, rule B-4).',
+  );
+}
+
+/**
+ * Reports a string the state being rendered would show but the content layer left blank.
+ *
+ * A blank label leaves a control with no accessible name, a blank message leaves an error with no
+ * words and a blank state leaves a section with no text — each one a defect the build can catch
+ * instead of the reader. The message names the field and the state, and it never prints a
+ * replacement: inventing one here would break rules W-1 and B-4.
+ */
+function assertPresent(field: string, value: string): void {
+  if (value.trim() === '') {
+    throw new Error(
+      `ContactForm: copy.${field} is blank, so the "${state}" state would render a control with no accessible name, a message with no words, or a section with no text. Every string arrives from src/content/contact.ts and none is invented here (rule W-1, rule B-4).`,
+    );
+  }
+}
+
+if (state === 'mailto') {
+  assertPresent('mailtoLabel', copy.mailtoLabel);
+}
+
+if (state === 'fallback') {
+  assertPresent('fallbackText', copy.fallbackText);
+}
+
+if (state === 'form') {
+  /*
+   * The consent statement links to this site's own privacy page and to nothing else, so a target
+   * that is not a same-site path is refused before it reaches an `href` (rule B-1).
+   */
+  if (!copy.privacyLink.href.startsWith('/')) {
+    throw new Error(
+      `ContactForm: copy.privacyLink.href is "${copy.privacyLink.href}", which is not a same-site path. The consent statement links to this site's privacy page and to no other host (rule B-1).`,
+    );
+  }
+
+  /*
+   * Every string the form state renders, in the order the block reads them. Listing them once keeps
+   * the check and the markup from drifting apart, and it is the whole set A6 and A8 supply for this
+   * surface (AAP 0.7.2).
+   */
+  const FORM_COPY: readonly (readonly [string, string])[] = [
+    ['labels.name', copy.labels.name],
+    ['labels.email', copy.labels.email],
+    ['labels.company', copy.labels.company],
+    ['labels.role', copy.labels.role],
+    ['labels.sites', copy.labels.sites],
+    ['labels.message', copy.labels.message],
+    ['requiredMarker', copy.requiredMarker],
+    ['consentLabel', copy.consentLabel],
+    ['privacyLink.label', copy.privacyLink.label],
+    ['submitLabel', copy.submitLabel],
+    ['sendingLabel', copy.sendingLabel],
+    ['confirmationHeading', copy.confirmationHeading],
+    ['confirmationText', copy.confirmationText],
+    ['errorText', copy.errorText],
+    ['messages.nameEmpty', copy.messages.nameEmpty],
+    ['messages.emailEmpty', copy.messages.emailEmpty],
+    ['messages.emailInvalid', copy.messages.emailInvalid],
+    ['messages.companyEmpty', copy.messages.companyEmpty],
+    ['messages.sitesInvalid', copy.messages.sitesInvalid],
+    ['messages.consentMissing', copy.messages.consentMissing],
+  ];
+
+  for (const [field, value] of FORM_COPY) {
+    assertPresent(field, value);
+  }
+}
+
+/**
+ * One labelled control.
+ *
+ * The six fields come from one model rather than six hand-written blocks, so the grid, the label
+ * treatment, the messages and the attributes that make a control valid cannot differ between them.
+ */
+interface FieldSpec {
+  /**
+   * The control's `name`, and the `<key>` in its id: the island finds a control from the `FieldKey`
+   * a validation failure reports by prefixing that key with `field-`, so `name` resolves to
+   * `#field-name` and the checkbox's `consent` to `#field-consent` (AAP 0.8.2).
+   */
+  key: 'name' | 'email' | 'company' | 'role' | 'sites' | 'message';
+  /** The input rendered, or `textarea` for the message. */
+  type: 'text' | 'email' | 'number' | 'textarea';
+  /** The `autocomplete` hint, or absent where the browser has no useful answer to offer. */
+  autocomplete?: string;
+  /** Whether a submission is refused while the field is empty (AAP 0.8.2). */
+  required: boolean;
+  /** The messages this field can show, each rendered hidden until its rule fails. */
+  messages: readonly MessageKey[];
+  /** Whether the field takes the whole column at the wide breakpoint, as the design's last rows do. */
+  spans: boolean;
+}
+
+/**
+ * The six fields in the order the content layer supplies their labels, which is the order A6 gives
+ * them: the three required ones first, then the role, then the optional site count and message.
+ *
+ * The keys of `messages` are the copy keys `src/lib/form.ts` reports, so the message a control shows
+ * is looked up from the content layer and no sentence is authored here (rule W-1).
+ */
+const FIELDS: readonly FieldSpec[] = [
+  {
+    key: 'name',
+    type: 'text',
+    autocomplete: 'name',
+    required: true,
+    messages: ['nameEmpty'],
+    spans: false,
+  },
+  {
+    key: 'email',
+    type: 'email',
+    autocomplete: 'email',
+    required: true,
+    messages: ['emailEmpty', 'emailInvalid'],
+    spans: false,
+  },
+  {
+    key: 'company',
+    type: 'text',
+    autocomplete: 'organization',
+    required: true,
+    messages: ['companyEmpty'],
+    spans: false,
+  },
+  {
+    key: 'role',
+    type: 'text',
+    autocomplete: 'organization-title',
+    required: false,
+    messages: [],
+    spans: false,
+  },
+  {
+    key: 'sites',
+    type: 'number',
+    autocomplete: 'off',
+    required: false,
+    messages: ['sitesInvalid'],
+    spans: true,
+  },
+  {
+    key: 'message',
+    type: 'textarea',
+    required: false,
+    messages: [],
+    spans: true,
+  },
+];
+
+/**
+ * The form's native target, so a browser without scripts posts to the configured endpoint rather
+ * than to the page's own address. The island posts to the same value, carried on the form's
+ * `data-endpoint` attribute; a null endpoint never reaches here, because that combination is
+ * refused above.
+ */
+const formAction = endpoint === null ? undefined : endpoint;
+
+/**
+ * The block's geometry: the page's content column and the section rhythm every section on the site
+ * shares, `space-60` at the narrow width and `space-80` from the theme's 900 px breakpoint. The wide
+ * step comes from the theme's `--breakpoint-wide` token through the `wide:` variant, so the
+ * breakpoint has one source (PA-5).
+ */
+const LAYOUT = 'content py-60 wide:py-80';
+
+/**
+ * The field grid: one column below the breakpoint and two across above it, on the design's 32 px
+ * column gutter. The row gap is the design's own pair of steps — `space-20` at the narrow width and
+ * `space-32` at the wide one (AAP 0.2.1) — and it also spaces a field's message from its control,
+ * so a message sits directly beneath the field it belongs to.
+ */
+const GRID = 'grid grid-cols-1 gap-x-32 gap-y-20 wide:grid-cols-2 wide:gap-y-32';
+
+/** One field: its label, its control and whatever message is showing, stacked with `space-8`. */
+const FIELD = 'flex flex-col gap-y-8';
+
+/** A field the design gives the whole column: the site count and the message. */
+const FIELD_SPAN = `${FIELD} wide:col-span-2`;
+
+/**
+ * The label, above its control and wired to it by `for`/`id` (AAP 0.6.4, rule B-3).
+ *
+ * It takes the design's body rung for field text — Urbanist 400, which the design draws at 16 px on
+ * its desktop artboard and 14 px on its mobile one — in Coffee Bean, the muted ink the palette
+ * allows on Cream. `px-20` is the field primitive's own horizontal padding, so the label starts on
+ * the same axis as the value beneath it and as the message below that, rather than on the
+ * underline's end. `flex-wrap` lets the required marker follow the label onto a second line at the
+ * narrow widths rather than overhang the column.
+ *
+ * At the wide width the step is the design's own 16 px. Below the theme's breakpoint `type-body-3`
+ * resolves to its mobile rung of 10 px, where the design reference draws 14 px: the mobile rung of
+ * the declared pair is kept rather than mixed with a second step's rung, because the token set is the
+ * design system this build answers to and every other surface's body copy takes the same rung at that
+ * width. The 4 px difference is recorded as a design-system deviation rather than closed by
+ * inventing a size between rungs.
+ */
+const LABEL = 'type-body-3 text-ink-coffee flex flex-wrap items-baseline gap-x-8 px-20';
+
+/** The required marker, in the small mono rung so it reads as an annotation rather than as a label. */
+const MARKER = 'type-button-2 text-ink-coffee';
+
+/**
+ * The control, on the design's field primitive: the Taupe `border-input` edge as the field's only
+ * boundary, a transparent fill, no radius, the design's `space-16` above and below the value and its
+ * `space-20` at each end (AAP 0.2.3, 0.6.3). `appearance-none` keeps a number field free of the
+ * browser's spinners, which the design draws no counterpart for.
+ */
+const CONTROL =
+  'border-input bg-transparent w-full appearance-none rounded-none py-16 px-20 type-body-3 text-ink-chocolate';
+
+/**
+ * The message field. The design lets it absorb the column's remaining height; with no fixed column
+ * height to absorb, it takes the manifest's `space-160` as a floor and the design's own instruction
+ * that it is the tall field. `resize-none` holds the shape the design draws, and `align-top` keeps
+ * the value at the field's top edge as the design sets it.
+ */
+const TEXTAREA = `${CONTROL} block align-top min-h-160 resize-none`;
+
+/**
+ * A validation message, directly beneath its control and linked to it by `aria-describedby` when it
+ * appears (rule B-3). The critical ink is 7.40:1 on Cream, and the icon beside it means the message
+ * never rests on colour alone. Its `px-20` is the field primitive's horizontal padding again, so the
+ * icon starts on the label's axis and the message reads as part of the field it describes.
+ */
+const MESSAGE = 'type-body-3 text-status-critical flex items-start gap-8 px-20';
+
+/**
+ * The consent row: the checkbox and its statement across the whole column.
+ *
+ * The `space-20` inset sits on the row inside it rather than on this wrapper, so the checkbox, its
+ * statement and its message all land on the same axis as the field labels above — while the message
+ * still takes the shared inset it shares with every other message.
+ */
+const CONSENT_FIELD = `${FIELD} wide:col-span-2`;
+
+/** The checkbox and its statement on one line, inset like a field's contents and top-aligned. */
+const CONSENT_LINE = 'flex items-start gap-12 px-20';
+
+/**
+ * The checkbox at WCAG 2.2's 24×24 target, in the palette's own accent colour. The design reference
+ * has no checkbox, so the control is the platform's own, tinted with a token (AAP 0.6.4).
+ */
+const CHECKBOX = 'size-24 shrink-0 accent-ink-chocolate';
+
+/** The consent statement: body copy in the primary ink, with the privacy link inside it. */
+const CONSENT_LABEL = 'type-body-3 text-ink-chocolate';
+
+/**
+ * The privacy link. It sits inside the sentence, which exempts it from the 24×24 target that binds a
+ * standalone control (WCAG 2.2 SC 2.5.8), and it is underlined so it is identifiable without colour.
+ */
+const PRIVACY_LINK = 'text-ink-chocolate underline';
+
+/**
+ * The block under the grid: the error region, then the submit.
+ *
+ * `mt-40` is the design's own gap from the last field to the submit plate (AAP 0.2.1), kept at both
+ * widths; `gap-y-16` only ever separates the submit from the error region when that region shows,
+ * because a hidden sibling is not a flex item and creates no gap.
+ */
+const FOOTER = 'mt-40 flex flex-col gap-y-16';
+
+/** The submit, right-aligned and flush with the column's right edge, as the design draws it. */
+const SUBMIT_ROW = 'flex justify-end';
+
+/** The confirmation's own column. It replaces the form, so it needs no more than a stack. */
+const CONFIRMATION = 'flex flex-col gap-y-8';
+
+/**
+ * The confirmation's heading, which the design reference never draws: it is the state a successful
+ * submission reaches, so it is designed from the request (AAP 0.4.4). It is a paragraph and not a
+ * heading element, because nothing in the copy gives it a level to take.
+ */
+const CONFIRMATION_HEADING = 'type-heading-5 text-status-success flex items-center gap-12';
+
+/** The confirmation's text, in the success ink at 5.92:1 on Cream, with the icon above naming it. */
+const CONFIRMATION_TEXT = 'type-body-3 text-status-success';
+
+/** The mailto link the second state renders, and the one the no-script line offers. */
+const MAILTO = 'type-body-3 text-ink-chocolate underline break-all';
+
+/** The fallback notice the third state renders. */
+const FALLBACK = 'type-body-3 text-ink-coffee';
+
+/** The line a browser without scripts shows in place of a working submission. */
+const NOSCRIPT = 'type-body-4 text-ink-coffee mt-24';
+---
+
+{
+  state === 'mailto' && contactEmail !== null && (
+    <section class={LAYOUT}>
+      <a href={`mailto:${contactEmail}`} class={MAILTO}>
+        {copy.mailtoLabel}
+      </a>
+    </section>
+  )
+}
+
+{
+  state === 'fallback' && (
+    <section class={LAYOUT}>
+      <p class={FALLBACK}>{copy.fallbackText}</p>
+    </section>
+  )
+}
+
+{
+  state === 'form' && (
+    <section class={LAYOUT} data-enquiry-block>
+      <form
+        id="enquiry-form"
+        method="post"
+        action={formAction}
+        novalidate
+        data-enquiry-form
+        data-endpoint={formAction}
+        data-sending-label={copy.sendingLabel}
+      >
+        <div class={GRID}>
+          {FIELDS.map((field) => (
+            <div class={field.spans ? FIELD_SPAN : FIELD}>
+              <label for={`field-${field.key}`} class={LABEL}>
+                <span>{copy.labels[field.key]}</span>
+                {field.required && <span class={MARKER}>{copy.requiredMarker}</span>}
+              </label>
+              {field.type === 'textarea' ? (
+                <textarea id={`field-${field.key}`} name={field.key} class={TEXTAREA} />
+              ) : (
+                <input
+                  id={`field-${field.key}`}
+                  name={field.key}
+                  type={field.type}
+                  autocomplete={field.autocomplete}
+                  required={field.required}
+                  aria-required={field.required ? 'true' : undefined}
+                  min={field.type === 'number' ? '1' : undefined}
+                  step={field.type === 'number' ? '1' : undefined}
+                  inputmode={field.type === 'number' ? 'numeric' : undefined}
+                  class={CONTROL}
+                />
+              )}
+              {field.messages.map((messageKey) => (
+                <p id={`error-${messageKey}`} class={MESSAGE} data-enquiry-message hidden>
+                  <Icon name="warning-circle" size="sm" />
+                  <span>{copy.messages[messageKey]}</span>
+                </p>
+              ))}
+            </div>
+          ))}
+
+          <div class={CONSENT_FIELD}>
+            <div class={CONSENT_LINE}>
+              <input
+                id="field-consent"
+                name="consent"
+                type="checkbox"
+                required
+                aria-required="true"
+                class={CHECKBOX}
+              />
+              <label for="field-consent" class={CONSENT_LABEL}>
+                <span>{copy.consentLabel}</span>{' '}
+                <a href={copy.privacyLink.href} class={PRIVACY_LINK}>
+                  {copy.privacyLink.label}
+                </a>
+              </label>
+            </div>
+            <p id="error-consentMissing" role="alert" class={MESSAGE} data-enquiry-message hidden>
+              <Icon name="warning-circle" size="sm" />
+              <span>{copy.messages.consentMissing}</span>
+            </p>
+          </div>
+        </div>
+
+        {/*
+          The honeypot: a field no person fills and a bot does, submitted with the rest of the form.
+          It is hidden, out of the accessibility tree, out of the tab order and never named, so it
+          costs a keyboard or screen-reader user nothing (AAP 0.4.4).
+        */}
+        <input
+          id="enquiry-trap"
+          name="company_website"
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+          hidden
+        />
+
+        <div class={FOOTER}>
+          <p role="alert" class={MESSAGE} data-enquiry-error hidden>
+            <Icon name="warning-circle" size="sm" />
+            <span>{copy.errorText}</span>
+          </p>
+          <div class={SUBMIT_ROW}>
+            <Button type="submit" label={copy.submitLabel} />
+          </div>
+        </div>
+      </form>
+
+      <div class={CONFIRMATION} data-enquiry-confirmation tabindex="-1" hidden>
+        <p class={CONFIRMATION_HEADING}>
+          <Icon name="check-circle" />
+          <span>{copy.confirmationHeading}</span>
+        </p>
+        <p class={CONFIRMATION_TEXT}>{copy.confirmationText}</p>
+      </div>
+
+      {/*
+        The form block is never a dead end without scripts: the line below offers the address when
+        one is configured and the fallback text when none is (rule W-2, NF-5).
+      */}
+      <noscript>
+        <p class={NOSCRIPT}>
+          {
+            contactEmail === null ? (
+              copy.fallbackText
+            ) : (
+              <a href={`mailto:${contactEmail}`} class={MAILTO}>
+                {copy.mailtoLabel}
+              </a>
+            )
+          }
+        </p>
+      </noscript>
+    </section>
+  )
+}
+
+<script>
+  /**
+   * The enquiry form island (AAP 0.4.2, 0.4.4, rule W-2).
+   *
+   * One module script, bundled and hashed by the build, and the page's only client-side code. It
+   * does four things: it refuses a submission whose values break a rule and reports each failure
+   * beside its own control, it moves focus to the first control that failed, it sends the accepted
+   * values to the configured endpoint, and it swaps the block into the confirmation or the error
+   * state. Nothing else: no storage, no query string, no global hook, no console output, no
+   * third-party request (rules B-1, B-2), and no status code or server wording ever reaches the page
+   * (rule B-4).
+   *
+   * The logic it depends on is `src/lib/form.ts`, which validates and sends and authors no copy; the
+   * sentences a failure shows are the ones the markup above renders from `src/content/contact.ts`,
+   * so this script only ever unhides a message that is already there and points its control at it
+   * (rule W-1, rule B-3). With scripts unavailable the markup's own `<noscript>` line carries the
+   * address or the fallback text, and the form still posts natively to the same endpoint.
+   */
+  import { ABORT_MS, submitEnquiry, validateFields } from '../lib/form.ts';
+  import type { EnquiryValues, FieldError, FieldKey, MessageKey } from '../lib/form.ts';
+
+  /** The hooks the markup carries. Each is an identifier or an attribute, never copy. */
+  const FORM = 'form[data-enquiry-form]';
+  const BLOCK = '[data-enquiry-block]';
+  const MESSAGE = '[data-enquiry-message]';
+  const ERROR_REGION = '[data-enquiry-error]';
+  const CONFIRMATION = '[data-enquiry-confirmation]';
+  const SUBMIT = 'button[type="submit"]';
+  const INVALID = '[aria-invalid="true"]';
+  const HONEYPOT = 'company_website';
+
+  /**
+   * The two plates `Button.astro` paints, by the utilities that paint them, so the sending state
+   * looks exactly like the disabled state the component itself renders: the idle pairing the form's
+   * submit takes, and the inert pairing that marks a control which cannot act for as long as it
+   * lasts (AAP 0.6.4, rule B-4). The plate is swapped rather than re-rendered because the island
+   * owns no copy and no framework state; the labels come from the markup's own attributes.
+   */
+  const PLATE_IDLE: readonly string[] = ['bg-ink-chocolate', 'text-ink-cream'];
+  const PLATE_INERT: readonly string[] = ['bg-ink-cream', 'text-ink-coffee', 'control-inert'];
+
+  /** The control a failure belongs to, resolved from the field key the logic module reports. */
+  function controlFor(form: HTMLFormElement, field: FieldKey): HTMLElement | null {
+    return form.querySelector<HTMLElement>(`#field-${field}`);
+  }
+
+  /** The message a failure describes, resolved from the copy key it reports. */
+  function messageFor(form: HTMLFormElement, messageKey: MessageKey): HTMLElement | null {
+    return form.querySelector<HTMLElement>(`#error-${messageKey}`);
+  }
+
+  /** The values one submission is validated against, read exactly as their controls carry them. */
+  function valuesOf(data: FormData): EnquiryValues {
+    const text = (name: string): string => {
+      const entry = data.get(name);
+      return typeof entry === 'string' ? entry : '';
+    };
+
+    return {
+      name: text('name'),
+      email: text('email'),
+      company: text('company'),
+      sites: text('sites'),
+      consent: data.get('consent') !== null,
+    };
+  }
+
+  /** Wires one rendered form. A page renders this block once, and the loop below covers a second. */
+  function initEnquiryForm(form: HTMLFormElement): void {
+    const block = form.closest(BLOCK);
+    const button = form.querySelector<HTMLButtonElement>(SUBMIT);
+    const errorRegion = form.querySelector<HTMLElement>(ERROR_REGION);
+    const confirmation = block === null ? null : block.querySelector<HTMLElement>(CONFIRMATION);
+    const endpoint = form.dataset.endpoint ?? '';
+    const sendingLabel = form.dataset.sendingLabel ?? '';
+
+    /*
+     * The markup always carries all four, and the endpoint is set whenever the page chooses the form
+     * state. A combination that lacks one is left to the browser's own submit, which posts to the
+     * form's action, rather than throwing on a page whose visitor can do nothing about it.
+     */
+    if (button === null || errorRegion === null || confirmation === null || endpoint === '') {
+      return;
+    }
+
+    /*
+     * The four are non-null from here on, and each is bound to its own name because a nested
+     * function does not inherit the narrowing the guard above gave the enclosing one.
+     */
+    const submitButton = button;
+    const errorBox = errorRegion;
+    const confirmationBox = confirmation;
+    const endpointUrl = endpoint;
+
+    /** The label the button carries at rest, restored when a submission fails. */
+    const idleLabel = submitButton.textContent ?? '';
+
+    /** Hides every message and clears the wiring that pointed a control at one. */
+    function clearMessages(): void {
+      for (const message of form.querySelectorAll<HTMLElement>(MESSAGE)) {
+        message.hidden = true;
+      }
+
+      for (const control of form.querySelectorAll<HTMLElement>(INVALID)) {
+        control.removeAttribute('aria-invalid');
+        control.removeAttribute('aria-describedby');
+      }
+    }
+
+    /**
+     * Shows the message for each failure, marks its control invalid, and returns the first control
+     * that failed so the caller can move focus there — in form order, because the logic module
+     * reports failures in the order the fields are rendered (rule B-3).
+     */
+    function showErrors(errors: readonly FieldError[]): HTMLElement | null {
+      let first: HTMLElement | null = null;
+
+      for (const error of errors) {
+        const control = controlFor(form, error.field);
+        const message = messageFor(form, error.messageKey);
+
+        if (message !== null) {
+          message.hidden = false;
+        }
+
+        if (control !== null) {
+          control.setAttribute('aria-invalid', 'true');
+
+          if (message !== null) {
+            control.setAttribute('aria-describedby', message.id);
+          }
+        }
+
+        if (first === null) {
+          first = control ?? message;
+        }
+      }
+
+      return first;
+    }
+
+    /**
+     * The sending state: the control cannot act, its label says what it is doing, and the plate is
+     * the one the component paints for a control that cannot act.
+     */
+    function setBusy(busy: boolean): void {
+      submitButton.disabled = busy;
+      submitButton.textContent = busy && sendingLabel !== '' ? sendingLabel : idleLabel;
+
+      if (busy) {
+        submitButton.setAttribute('aria-busy', 'true');
+        submitButton.classList.remove(...PLATE_IDLE);
+        submitButton.classList.add(...PLATE_INERT);
+      } else {
+        submitButton.removeAttribute('aria-busy');
+        submitButton.classList.remove(...PLATE_INERT);
+        submitButton.classList.add(...PLATE_IDLE);
+      }
+    }
+
+    /**
+     * Replaces the form with the confirmation and moves focus to it, so a keyboard or screen-reader
+     * user is told the submission succeeded instead of being left on a form that vanished.
+     */
+    function showConfirmation(): void {
+      form.hidden = true;
+      confirmationBox.hidden = false;
+      confirmationBox.focus();
+    }
+
+    /** One submission: validate, then send, then report one of the two outcomes. */
+    async function handleSubmit(event: SubmitEvent): Promise<void> {
+      event.preventDefault();
+
+      if (submitButton.disabled) {
+        return;
+      }
+
+      const data = new FormData(form);
+
+      clearMessages();
+      errorBox.hidden = true;
+
+      /*
+       * A submission that fills the hidden field came from a bot. It is shown the confirmation so
+       * it learns nothing, and nothing is sent: the honeypot costs a real visitor nothing because
+       * the field is hidden, unnamed and out of the tab order (AAP 0.4.4).
+       */
+      const trap = data.get(HONEYPOT);
+      if (typeof trap === 'string' && trap.trim() !== '') {
+        showConfirmation();
+        return;
+      }
+
+      const errors = validateFields(valuesOf(data));
+
+      if (errors.length > 0) {
+        const first = showErrors(errors);
+        first?.focus();
+        return;
+      }
+
+      /*
+       * One controller and one timer per attempt, both cleared in the `finally`: a submission that
+       * runs past the request's limit is aborted, and an abort is reported as the same failure a
+       * rejection or a network error is (AAP 0.4.4).
+       */
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), ABORT_MS);
+
+      setBusy(true);
+
+      let accepted = false;
+
+      try {
+        accepted = await submitEnquiry(endpointUrl, data, controller.signal);
+      } finally {
+        window.clearTimeout(timer);
+      }
+
+      if (accepted) {
+        showConfirmation();
+        return;
+      }
+
+      /*
+       * Every failure looks the same to the visitor: the error text above the submit, every value
+       * still in place, and the control back in service. Nothing about the response is shown,
+       * because the response body, its status and any field name it mentions are not ours to
+       * publish (rule B-4).
+       */
+      setBusy(false);
+      errorBox.hidden = false;
+    }
+
+    form.addEventListener('submit', (event) => {
+      void handleSubmit(event);
+    });
+  }
+
+  /** Wires every enquiry form the page rendered. */
+  function initEnquiryForms(): void {
+    for (const form of document.querySelectorAll<HTMLFormElement>(FORM)) {
+      initEnquiryForm(form);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEnquiryForms, { once: true });
+  } else {
+    initEnquiryForms();
+  }
+</script>
+

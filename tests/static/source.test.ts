@@ -939,7 +939,7 @@ const SECRET_PATTERNS: readonly SecretPattern[] = [
   { name: 'a Google API key', pattern: /\bAIza[0-9A-Za-z_-]{35}\b/ },
   {
     name: 'an Authorization header with a value',
-    pattern: /\bAuthorization\b\s*[:=]\s*["'`]?[^\s"'`]{8,}/,
+    pattern: /\bAuthorization\b\s*[:=]\s*(?:[A-Za-z][\w-]*\s+)?["'`]?[^\s"'`]{8,}/i,
   },
 ];
 

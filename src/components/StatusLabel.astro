@@ -1,0 +1,54 @@
+---
+/**
+ * The label that qualifies a claim — "Proposed product, in discovery", "Design intent", the
+ * sovereignty top label, the per-stage qualifiers — stated in words and nothing else (AAP 0.6.2,
+ * 0.7.5, 0.8.1).
+ *
+ * Rule B-4 forbids an invented claim, and a pre-product company's every product and sovereignty
+ * statement is a claim; this component is how each one carries its qualification. The words are
+ * copy handed in as a prop, so the component holds no string of its own (rule W-1) and cannot
+ * shorten, paraphrase or invent one: it renders `text` exactly as the content layer writes it.
+ *
+ * It is type, not a chip. The design reference draws no status element anywhere, so there is no
+ * node to reproduce and no shape to copy: no fill, border, radius, shadow, icon or dot is added,
+ * because a badge would be an invented shape and a colour swatch would state the status by colour
+ * alone, which rule B-3 forbids. The words carry the qualification; the colour is only the ink
+ * they are set in.
+ *
+ * `default` is Coffee Bean on the Cream page ground, about 7.3:1 — never Khaki (2.51:1) or Chestnut
+ * (2.74:1), which decorate rules and dots on Cream and carry no text there (AAP 0.6.4). `inverse`
+ * is Cream, for the two dark bands, where Cream is the ink.
+ *
+ * One static `<span>`: inline, so it sits inside a card's caption row, a paragraph or a top block
+ * without disturbing that block's layout; not interactive, so it takes no tab stop and no focus
+ * ring; and not an island, so it ships no script and makes no request (rules B-1, W-2).
+ */
+
+interface Props {
+  /** The label exactly as the content layer writes it, in its own case. */
+  text: string;
+  /** The ink for the ground the label sits on; defaults to the Cream page ground's tertiary ink. */
+  tone?: 'default' | 'inverse';
+}
+
+const { text, tone = 'default' } = Astro.props;
+
+/**
+ * One ink per tone, keyed by the prop's own union, so a tone added to `Props` without an ink here
+ * fails the type check rather than rendering a label the page cannot read.
+ */
+const TONE_CLASS: Record<NonNullable<Props['tone']>, string> = {
+  default: 'text-ink-coffee',
+  inverse: 'text-ink-cream',
+};
+
+/**
+ * The small mono rung the design reference binds to its captions and mono meta lines (AAP 0.2.2),
+ * which the theme steps from its Mobile size to its Desktop size on its own, and the upper case,
+ * which is presentation and so is applied by CSS rather than typed into the content layer (AAP
+ * 0.6.6) — the same division the eyebrow, navigation and button faces use.
+ */
+const STATUS = 'type-button-2 mono-uppercase';
+---
+
+<span class={`${STATUS} ${TONE_CLASS[tone]}`}>{text}</span>

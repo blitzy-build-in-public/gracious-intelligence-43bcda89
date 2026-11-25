@@ -1,0 +1,33 @@
+---
+/**
+ * The skip link: the document's first focusable element, and how a keyboard reader bypasses the
+ * header on every route (AAP 0.8.1, rule B-3).
+ *
+ * One anchor is the whole component. It targets the `<main id="main">` the page layout renders,
+ * so activating it carries the reader past the navigation rather than offering a link that leads
+ * nowhere (rule B-4) — and because that destination is in this same document, a plain anchor is
+ * the entire mechanism: no script, no framework import, no hydration (rule W-2).
+ *
+ * Hidden until it holds focus, then drawn as an ordinary control. The `skip-link` class in
+ * `src/styles/theme.css` carries that whole presentation — the Cream plate, the Taupe edge, the
+ * control radius, the padding steps and the transform that keeps the link just above the
+ * viewport until it is focused — and `type-button-1` is the control-label step declared in the
+ * same file. No colour, size or spacing value is stated here, because the design system keeps
+ * one definition of each, and an inline style would in any case be rejected by the page's
+ * hash-based content security policy.
+ *
+ * The wording belongs to the caller: A8's label arrives as `label` from `src/content/ui.ts`, so
+ * no user-visible literal lives in this file (rule W-1). The anchor stands alone — no wrapper
+ * that would disturb the focus order, no `tabindex`, and no `aria-label` restating the text that
+ * is already visible when the link is focused.
+ */
+
+interface Props {
+  /** A8's skip-link wording, supplied by the layout; the anchor's only text. */
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<a class="skip-link type-button-1" href="#main">{label}</a>

@@ -1,0 +1,45 @@
+---
+/**
+ * A4's limits statement: the block on `/sovereignty` that states what the product does not yet
+ * do, set as plain text between the ten questions and the pilot band (AAP 0.8.1, 0.8.4).
+ *
+ * The sentence is specification copy handed in as `text`, so the block renders the content
+ * layer's own wording and holds no string of its own (rule W-1, AAP 0.7). It carries no heading,
+ * no label and no icon: AAP 0.8.1 declares `text` as its whole interface, and the design
+ * reference draws no such block at all — AAP 0.6.2 records its Figma reference as none — so
+ * anything rendered beside the sentence would be invented copy (AAP 0.7.6).
+ *
+ * A stated limitation is not an alarm. The critical ink, an icon and an alert role all belong to
+ * the enquiry form's messages and to nowhere else (AAP 0.6.4), so none of them appears here:
+ * the sentence is set whole and unsoftened, in the body rung and the page's primary ink, which
+ * measures 17.08:1 on the Cream ground (rule B-4, rule B-3).
+ *
+ * One static `<section>` holding one `<p>`: no script, no hydration, no framework import and no
+ * request, and nothing focusable, so the block adds no tab stop to the page (rules B-1, W-2).
+ */
+
+interface Props {
+  /** A4's limits statement, exactly as the specification writes it and in full. */
+  text: string;
+}
+
+const { text } = Astro.props;
+
+/**
+ * The page's own content column (AAP 0.8.4) and the block's separation from the sections either
+ * side of it: `space-60` above and below at the narrow width and `space-96` at the wide one (AAP
+ * 0.8.1). The wide step begins at the theme's own 900 breakpoint, restated in rem because the
+ * theme publishes no breakpoint token and a class attribute may hold no pixel literal (PA-5); if
+ * that breakpoint ever moves, this variant moves with it.
+ */
+const LAYOUT = 'content py-60 min-[56.25rem]:py-96';
+
+/**
+ * The intro-paragraph rung — Urbanist 400 at its own mobile and desktop steps, leading 1.5 — in
+ * the page's primary ink, which keeps the statement at 17.08:1 on Cream (AAP 0.2.2, rule B-3).
+ * No critical or success ink belongs here: those two are the form's alone.
+ */
+const PARAGRAPH = 'type-body-2 text-ink-chocolate';
+---
+
+<section class={LAYOUT}><p class={PARAGRAPH}>{text}</p></section>

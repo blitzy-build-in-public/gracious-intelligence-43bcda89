@@ -1,0 +1,93 @@
+---
+/**
+ * The site's only layout: the document every one of the nine routes is rendered into
+ * (AAP 0.8.1, 0.10.2).
+ *
+ * It composes the whole shell and nothing else — the head from `Meta`, the skip link, the header,
+ * the one `<main>` landmark around the page's slot, and the footer. No heading, no paragraph, no
+ * page-specific markup and no user-visible string is written here: each page renders its single
+ * `<h1>` inside the slot, and every word on the page comes from `src/content` (rules W-1, B-4;
+ * AAP 0.7.2).
+ *
+ * Two decisions are worth stating because the markup alone does not show them. First, the
+ * skip-link label, the header call to action and the wordmark arrive from the content modules
+ * imported below rather than as props: AAP 0.8.1 fixes this layout's interface at four members,
+ * so the global shell copy it needs is read from the same one definition `Header`, `Footer` and
+ * `Meta` are handed, and no string is typed in this file. Second, `ogImage` is derived from
+ * `siteUrl` rather than from the PNG's existence: the 1200x630 file is generated on every build,
+ * but `og:image` is an absolute URL and is therefore emitted only once the site address is known
+ * (AAP 0.4.2, 0.9.1).
+ *
+ * The layout is a pure server-rendered shell. It opens no request handler, reads no configuration
+ * itself — `src/lib/env.ts` is the only module that does — declares no island, and adds no
+ * stylesheet link, script or image element of its own, because `Meta` is the single place any of
+ * those may enter a page (rules B-1, B-2, W-2; AAP 0.4.5).
+ */
+import '../styles/theme.css';
+
+import type { FooterCopy, Link, PageMeta } from '../content/global.ts';
+import { global } from '../content/global.ts';
+import { ui } from '../content/ui.ts';
+import { getContactEmail, getSiteUrl, isLive } from '../lib/env.ts';
+
+import Meta from '../components/Meta.astro';
+import SkipLink from '../components/SkipLink.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  /**
+   * The page's A8 metadata: a title on every route and a description on every route but the 404,
+   * which A8 gives a title, a heading, a text and a link and no description (AAP 0.4.3).
+   */
+  meta: PageMeta;
+  /**
+   * The five global navigation links, supplied from `global.nav` by the page. The same
+   * definition reaches the header and the footer, so the two can never drift apart (A-4).
+   */
+  nav: Link[];
+  /** A0's own footer copy: the footer line, the two footer links and the notice. */
+  footer: FooterCopy;
+  /**
+   * Withholds one page from every crawler whatever the live flag says. The 404 route is its only
+   * caller; forwarding it unchanged is what lets `Meta` merge it into the robots meta it derives,
+   * so a page can neither gain `noindex` by omission nor lose it by mistake (AAP 0.4.2, FR-8).
+   */
+  forceNoindex?: boolean;
+}
+
+const { meta, nav, footer, forceNoindex = false } = Astro.props;
+
+/** Configuration, resolved once for the whole document through its only reader (rule B-2). */
+const siteUrl = getSiteUrl();
+const live = isLive();
+const contactEmail = getContactEmail();
+const ogImage = siteUrl !== null;
+---
+
+<html lang="en">
+  <head>
+    <Meta
+      meta={meta}
+      siteUrl={siteUrl}
+      live={live}
+      forceNoindex={forceNoindex}
+      ogImage={ogImage}
+      siteName={global.wordmark}
+    />
+  </head>
+  <body>
+    <SkipLink label={ui.skipLink} />
+    <Header
+      nav={nav}
+      cta={global.headerAction}
+      current={Astro.url.pathname}
+      labels={{ open: ui.menuOpen, close: ui.menuClose }}
+      wordmark={global.wordmark}
+    />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer copy={footer} nav={nav} contactEmail={contactEmail} wordmark={global.wordmark} />
+  </body>
+</html>

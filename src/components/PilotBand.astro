@@ -1,0 +1,148 @@
+---
+/**
+ * The pilot band — the one section on the site that leaves the Cream page ground (AAP 0.6.2,
+ * 0.6.3, 0.8.1, 0.14.7).
+ *
+ * The design reference sets exactly one band against the page it sits on, and that contrast is
+ * the rhythm this section keeps. Its own page is dark with a light band; our page is the
+ * owner's Cream ground, so the band is mirrored: a full-bleed `color-bg-chocolate` ground with
+ * Cream ink and a Cream plate carrying a Chocolate label. The template's photographic ground is
+ * closed by that same decision — the frame's only paint was one photograph with no scrim or
+ * overlay, so the ground is replaced outright and no image is rendered (rule W-1, B-1; AAP
+ * 0.2.4).
+ *
+ * Everything the band says arrives as a prop. The heading, the three steps and the action come
+ * from `src/content/shared/pilot.ts`, the single shared module the three pages that show the band
+ * import (AAP A-4, 0.7.2), so this component holds no string of its own and no copy edit here is
+ * possible (rule W-1). The steps are the content layer's own `Day 1`, `Day 20` and `Day 90`
+ * titles: the ordered list supplies the sequence semantics, no marker, counter or numeral is
+ * drawn, and the band therefore carries no number beyond those three labels (rule B-4).
+ *
+ * Contrast on this ground is the reason for each ink below (rule B-3, AAP 0.2.2): Cream on
+ * Chocolate measures 17.08:1 and carries the heading, the step titles and the button's plate;
+ * Khaki measures 6.80:1 on Chocolate and is its secondary ink, which is the only role it has
+ * there; and the rules between the steps are `border-hairline-dark` — 1px Cream — because Khaki
+ * as a boundary against Chocolate measures 2.4:1, which is not a rule a reader can see.
+ *
+ * One static `<section>`: no script, no hydration, no framework import and no request (rules B-1,
+ * W-2), and the single focusable thing inside it is the link the caller passes, whose Cream focus
+ * ring comes from the theme's `.tone-inverse` block (AAP 0.6.4).
+ */
+
+import Button from './Button.astro';
+import type { PilotBandCopy } from '../content/shared/pilot.ts';
+
+/**
+ * The band's copy, member for member the shared module's interface (AAP 0.8.1).
+ *
+ * `steps` and `action` are taken from `PilotBandCopy` rather than restated, so the `Item` and
+ * `Link` shapes the content layer declares are the ones this component renders and a change to
+ * either shape fails here instead of drifting.
+ */
+interface Props {
+  /** The band's heading, exactly as the content layer writes it. */
+  heading: string;
+  /** Exactly three steps — `Day 1`, `Day 20`, `Day 90` — in that order. */
+  steps: PilotBandCopy['steps'];
+  /** The band's one control: a link to a real route, never an endpoint. */
+  action: PilotBandCopy['action'];
+}
+
+const { heading, steps, action } = Astro.props;
+
+/**
+ * The ground, and the tone that follows from it. `bg-bg-chocolate` is the band's whole visual
+ * departure from the page (AAP 0.6.3), and `.tone-inverse` hands Cream to everything inside it
+ * together with the Cream `:focus-visible` ring, so the button's indicator sits on the band
+ * rather than on its own Cream plate (AAP 0.6.4).
+ *
+ * The vertical padding is the template's own reading of the band: its content column is
+ * auto-centred with 143px of ground above and below at the wide width, and 32px of block padding
+ * at the narrow one. 143px is not a step of the scale, so it takes the nearest declared step,
+ * `space-136` (AAP 0.16.3 PA-1); the narrow 32px is exact.
+ */
+const BAND = 'bg-bg-chocolate tone-inverse py-32 wide:py-136';
+
+/**
+ * The page's own content column (AAP 0.8.4): `--container-content` within `space-48` at the wide
+ * width and within `space-16` below it, so the band spans the full viewport while its column
+ * stays inside the page's inset — the mobile frame draws exactly that, its band column being the
+ * page's own 358px column.
+ */
+const COLUMN = 'content';
+
+/**
+ * The narrow measure the band keeps inside that column.
+ *
+ * The template's band carries a column much narrower than the page column around it (503px
+ * against 1340px), and our copy is longer, so the reading taken here is the prompt's second
+ * option: the page column with `space-160` of horizontal padding inside it at the wide width.
+ * At 1440 that is 1344 − 320 = 1024px, and at 390 the inner padding is absent so the measure is
+ * the full 358px column, matching the mobile frame where the band column and the page column are
+ * the same width. Both steps are declared spacing tokens; no width is written as a literal.
+ */
+const MEASURE = 'flex flex-col gap-32 wide:gap-48 wide:px-160';
+
+/**
+ * The heading and the steps as one group, 24px apart — the gap the template sets inside its own
+ * text stack at both rungs.
+ */
+const TEXT_GROUP = 'flex flex-col gap-24';
+
+/**
+ * The heading takes the rung the template draws its band heading in: Display 2, Urbanist 500 at
+ * 96px wide and 32px narrow with a leading of 1 (AAP 0.2.2). `.type-display-2` steps between
+ * those two sizes from the theme's own breakpoint, so the component names the rung alone.
+ */
+const HEADING = 'type-display-2 text-ink-cream';
+
+/**
+ * The steps. A single column at the narrow width and three columns from the theme's breakpoint,
+ * where the row carries the template's own 40px gutter; `grid-cols-*` resolves to
+ * `minmax(0, 1fr)` tracks, so a long step line can never widen the measure and overflow it.
+ */
+const LIST = 'grid grid-cols-1 gap-24 wide:grid-cols-3 wide:gap-40';
+
+/**
+ * One step: its title over its line, 8px apart, closed by the band's Cream rule.
+ *
+ * The rule is the plan's addition rather than the template's — the reference band draws no
+ * border or divider at all — and it is the row convention the design already uses elsewhere
+ * (AAP 0.2.3's step row closes on `border-hairline-dark`). Grid items stretch to the tallest
+ * track, so the three rules sit on one line at the wide width and separate the stacked steps at
+ * the narrow one, with the last one closing the list.
+ */
+const STEP = 'flex flex-col gap-8 border-hairline-dark pb-16 wide:pb-24';
+
+/** A step's title: Cream, so it reads at 17.08:1 on the band's ground. */
+const STEP_TITLE = 'type-heading-5 text-ink-cream';
+
+/**
+ * A step's line: Khaki, the manifest's secondary ink on Chocolate and on Chocolate only, where
+ * it measures 6.80:1 (AAP 0.2.2, rule B-3).
+ */
+const STEP_LINE = 'type-body-3 text-khaki';
+---
+
+<section class={BAND}>
+  <div class={COLUMN}>
+    <div class={MEASURE}>
+      <div class={TEXT_GROUP}>
+        <h2 class={HEADING}>{heading}</h2>
+        <ol class={LIST}>
+          {
+            steps.map((step) => (
+              <li class={STEP}>
+                <h3 class={STEP_TITLE}>{step.title}</h3>
+                <p class={STEP_LINE}>{step.line}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div>
+        <Button label={action.label} href={action.href} tone="inverse" />
+      </div>
+    </div>
+  </div>
+</section>

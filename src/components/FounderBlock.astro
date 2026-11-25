@@ -59,10 +59,10 @@ if (bio.trim() === '') {
 /**
  * The section's geometry: the content column, then the block rhythm the design gives a section
  * between its neighbours — `space-60` at the narrow width and `space-80` from the theme's 900
- * breakpoint. That breakpoint is restated in rem for the reason `Button.astro` restates it: the
- * theme publishes no breakpoint token, and a class attribute may hold no pixel literal.
+ * breakpoint. That step comes from the theme's `--breakpoint-wide` token through Tailwind's
+ * `wide:` variant, so the breakpoint has one source (PA-5) and this block moves with it.
  */
-const LAYOUT = 'content py-60 min-[56.25rem]:py-80';
+const LAYOUT = 'content py-60 wide:py-80';
 
 /** The paragraph's rung and ink: body-2 in Chocolate on the Cream page ground. */
 const TEXT = 'type-body-2 text-ink-chocolate';

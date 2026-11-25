@@ -28,11 +28,11 @@ const { text } = Astro.props;
 /**
  * The page's own content column (AAP 0.8.4) and the block's separation from the sections either
  * side of it: `space-60` above and below at the narrow width and `space-96` at the wide one (AAP
- * 0.8.1). The wide step begins at the theme's own 900 breakpoint, restated in rem because the
- * theme publishes no breakpoint token and a class attribute may hold no pixel literal (PA-5); if
- * that breakpoint ever moves, this variant moves with it.
+ * 0.8.1). The wide step comes from the theme's `--breakpoint-wide` token through Tailwind's
+ * `wide:` variant, the same declaration the theme's media query reads, so the 900 breakpoint has
+ * one source (PA-5) and this block moves with it.
  */
-const LAYOUT = 'content py-60 min-[56.25rem]:py-96';
+const LAYOUT = 'content py-60 wide:py-96';
 
 /**
  * The intro-paragraph rung — Urbanist 400 at its own mobile and desktop steps, leading 1.5 — in

@@ -8,10 +8,16 @@
  * The label is copy handed in by the caller, so the component holds no string of its own (rule
  * W-1), and it renders one element rather than a wrapper, so the semantics are never diluted.
  *
- * The design reference draws this control in its default state alone: the component set declares
- * no hover, pressed, focus, disabled or loading variant (AAP 0.2.3), so none of those colours is
- * invented here. The focus indicator is the theme's own `:focus-visible` ring, which the base
- * layer re-points to Cream for everything inside a `.tone-inverse` band (AAP 0.6.4, rule B-3).
+ * The design reference draws this control in its default state alone — no hover, pressed, focus,
+ * disabled or loading variant exists on any frame (AAP 0.2.3, 0.15.2) — so every one of those
+ * states is designed from the request and composed from tokens the manifest declares. Hover
+ * underlines the label, the affordance the theme already gives the current navigation item; a
+ * press takes the secondary ink of the control's own ground, Khaki on Chocolate (6.80:1) and
+ * Coffee Bean on Cream (7.25:1); and the control that cannot act takes the Cream plate with
+ * Coffee Bean ink behind the Taupe edge `.control-inert` draws (7.25:1 and 9.40:1). The focus
+ * indicator is the theme's own `:focus-visible` ring, untouched here, which the base layer
+ * re-points to Cream for everything inside a `.tone-inverse` band (AAP 0.6.4, rule B-3), and the
+ * reduced-motion block still stops every transition, so no state below depends on motion.
  */
 
 /**
@@ -44,9 +50,10 @@ const isSending = sending === true;
 const isDisabled = disabled === true || isSending;
 
 /**
- * A link is only rendered where the caller supplies a target, so no control ever leads nowhere. A
- * link the caller marks disabled keeps that target — it is the caller's own label, not a missing
- * `href`, that explains the state — and `aria-disabled` carries the marking on either element.
+ * A link is only rendered where the caller supplies a target and the control can act: the
+ * marking on a disabled control never rests on `aria-disabled` over a live `href`, because an
+ * anchor that still navigates contradicts the state it announces (rule B-4). A target the caller
+ * supplies alongside `disabled` therefore renders the inert button in the anchor's place.
  */
 const target = href ?? '';
 const isLink = target !== '';
@@ -64,46 +71,61 @@ const visibleLabel = isSending ? (sendingLabel ?? label) : label;
  * Mobile variant of the design carries and what closes the box to the height that variant
  * draws. `.type-button-1` carries the label's family, size, weight and leading, and
  * `.mono-uppercase` supplies the upper case in CSS, so the DOM text stays exactly as the
- * content layer writes it (AAP 0.6.6). Every value above is a theme token; the wide step is the
- * theme's own breakpoint — the 900 one — restated in rem, because the theme publishes no
- * breakpoint token and a class attribute may hold no pixel literal. If that breakpoint ever
- * moves, this variant moves with it.
+ * content layer writes it (AAP 0.6.6). Every value above is a theme token, the wide step
+ * included: `wide:px-24` and `wide:py-16` come from the theme's `--breakpoint-wide` token
+ * through Tailwind's `wide:` variant, the same declaration the theme's own media query reads,
+ * so the 900 step has one source (PA-5) and this variant moves with it.
  */
 const SHAPE =
-  'type-button-1 mono-uppercase inline-flex items-center justify-center rounded-control text-center px-16 py-12 min-[56.25rem]:px-24 min-[56.25rem]:py-16';
+  'type-button-1 mono-uppercase inline-flex items-center justify-center rounded-control text-center px-16 py-12 wide:px-24 wide:py-16';
 
 /**
  * One shape in the two tones of the manifest (AAP 0.2.2, 0.6.3): the plate is the ink token and
- * the label its counterpart. Both pairings measure 17.08:1, and neither adds a border, a shadow
- * or a gradient, because the design system declares none. An unrecognised tone takes `default`,
- * which is the pairing a control on the page's own ground needs.
+ * the label its counterpart. Both rest pairings measure 17.08:1, and neither adds a shadow or a
+ * gradient, because the design system declares none. Hover states the affordance with the same
+ * underline the theme gives the current navigation item, and the pressed label takes the
+ * secondary ink of its own ground: Khaki on the Chocolate plate (6.80:1, its manifest role as
+ * secondary ink on Chocolate only) and Coffee Bean on the Cream plate (7.25:1). Coffee Bean is
+ * never pressed onto the Chocolate plate, where the manifest gives it no ink role, and Khaki is
+ * never pressed onto the Cream plate, where it measures 2.51:1. The control that cannot act
+ * drops both states for the inert plate — the Cream ground with Coffee Bean ink (7.25:1) and the
+ * Taupe edge `.control-inert` draws (9.40:1 on Cream) — so it stays legible and unmistakably out
+ * of service on either tone. An unrecognised tone takes `default`, which is the pairing a
+ * control on the page's own ground needs.
  */
-const INVERSE_PLATE = 'bg-ink-cream text-ink-chocolate';
-const DEFAULT_PLATE = 'bg-ink-chocolate text-ink-cream';
+const INVERSE_PLATE =
+  'bg-ink-cream text-ink-chocolate hover:underline active:text-ink-coffee';
+const DEFAULT_PLATE =
+  'bg-ink-chocolate text-ink-cream hover:underline active:text-khaki';
+const INERT_PLATE = 'bg-ink-cream text-ink-coffee control-inert';
 
-const className = `${SHAPE} ${tone === 'inverse' ? INVERSE_PLATE : DEFAULT_PLATE}`;
+const className = `${SHAPE} ${
+  isDisabled ? INERT_PLATE : tone === 'inverse' ? INVERSE_PLATE : DEFAULT_PLATE
+}`;
 
 /*
- * The theme carries no reduced-contrast ink step, so a disabled control cannot be dimmed without
- * writing a literal the design system does not contain. The state is therefore carried by
- * `disabled` and `aria-disabled`, by the relabel a sending control shows, and by the explanatory
- * label the caller supplies (rule B-4) — the gap is reported rather than filled with a value.
+ * Every interactive state here is a state of its own rather than a dimmed rest state, because
+ * the design reference draws none of them (AAP 0.15.2). Hover underlines the label; a press
+ * takes the secondary ink of the control's own ground, Khaki on Chocolate (6.80:1) or Coffee
+ * Bean on Cream (7.25:1); and the control that cannot act takes the Cream plate with Coffee Bean
+ * ink (7.25:1) behind the Taupe edge `.control-inert` draws (9.40:1 on Cream), which holds on
+ * either ground, so it never looks enabled on the Cream page or on a dark band. A caller that
+ * marks a link disabled gets a native `<button type="button" disabled>` in the anchor's place:
+ * an anchor that keeps its `href` still navigates whatever `aria-disabled` announces, which is
+ * exactly what rule B-4 forbids, while the button carries no target, leaves the tab order, and
+ * keeps the caller's explanatory label as its own text. `sending` implies the same treatment, so
+ * a submission in flight shows the relabel and the inert plate together.
  */
 ---
 
 {
-  isLink ? (
-    <a
-      href={target}
-      class={className}
-      aria-disabled={isDisabled ? 'true' : undefined}
-      aria-busy={isSending ? 'true' : undefined}
-    >
+  isLink && !isDisabled ? (
+    <a href={target} class={className}>
       {visibleLabel}
     </a>
   ) : (
     <button
-      type={type}
+      type={isLink ? 'button' : type}
       class={className}
       disabled={isDisabled}
       aria-disabled={isDisabled ? 'true' : undefined}

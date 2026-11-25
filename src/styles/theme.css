@@ -13,11 +13,11 @@
   /*
    * The default palette is replaced, not extended: the design admits no neutral, grey or
    * gradient token (AAP 0.2.2), so clearing the namespace is what makes an undeclared
-   * colour impossible to reach rather than merely unused.
+   * colour impossible to reach rather than merely unused. Exactly the manifest's eleven
+   * colours are declared back below, so those eleven are the whole palette the build can
+   * reach and no keyword step stands beside them to widen it.
    */
   --color-*: initial;
-  --color-transparent: transparent;
-  --color-current: currentColor;
 
   /*
    * Colour roles follow contrast on the ground each one sits on (AAP 0.2.2, 0.6.3).
@@ -152,9 +152,12 @@
   --text-button-2-desktop--font-weight: 400;
 
   /*
-   * The spacing scale is the design's own 4px-grid steps and nothing else, so the base
-   * multiplier is cleared too: an undeclared step then generates no utility at all
-   * (AAP 0.2.2, PA-1).
+   * The spacing scale is the design's own 4px-grid steps and nothing else: the twenty-one
+   * below are the whole scale, and the base multiplier is cleared so that no step outside
+   * them resolves. A numeric step the theme does not declare then produces no declaration at
+   * all rather than a build error — the class is simply absent and the property keeps its
+   * initial value — so every spacing utility under src/ names one of these steps (AAP 0.2.2,
+   * PA-1).
    */
   --spacing: initial;
   --spacing-4: 4px;
@@ -202,6 +205,19 @@
   --blur-*: initial;
 
   /*
+   * The namespaces the manifest never populates are cleared with the shadow ones: it is the
+   * closed list of tokens the build may use (AAP 0.2.2), so no component can reach a motion,
+   * tracking, leading or ratio value the design does not declare. Nothing on the site
+   * animates either (AAP 0.2.4), so a motion token has nothing to describe.
+   */
+  --animate-*: initial;
+  --ease-*: initial;
+  --tracking-*: initial;
+  --leading-*: initial;
+  --aspect-*: initial;
+  --perspective-*: initial;
+
+  /*
    * Values with no place on the spacing scale, declared here so that no rule needs a
    * literal: the content column (the 1440 design width less its two 48px insets, PA-1),
    * and the focus ring B-3 requires at 2px with a 2px offset (AAP 0.6.4).
@@ -209,6 +225,14 @@
   --container-content: 1344px;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+
+  /*
+   * The plan's own single breakpoint (AAP 0.16.3 PA-5): Tailwind derives the `wide:` variant
+   * from this declaration, and the media query further down reads it back through theme(), so
+   * the step from the Mobile rungs to the Desktop ones has one source and moving it is this
+   * one line.
+   */
+  --breakpoint-wide: 900px;
 }
 
 /*
@@ -358,41 +382,19 @@
     font-weight: var(--text-button-2--font-weight);
     letter-spacing: var(--text-button-2--letter-spacing);
   }
-}
 
-/*
- * The design declares two artboard widths and no breakpoint, so the step from Mobile to
- * Desktop sizes begins at the plan's own breakpoint (PA-5). The tokens are re-pointed
- * rather than the classes, so one value still has one definition and both the .type-*
- * classes and Tailwind's text-<step> utilities change together.
- */
-@media (min-width: 900px) {
-  :root {
-    --text-display-2: var(--text-display-2-desktop);
-    --text-heading-1: var(--text-heading-1-desktop);
-    --text-heading-2: var(--text-heading-2-desktop);
-    --text-heading-3: var(--text-heading-3-desktop);
-    --text-heading-4: var(--text-heading-4-desktop);
-    --text-heading-5: var(--text-heading-5-desktop);
-    --text-heading-6: var(--text-heading-6-desktop);
-    --text-body-1: var(--text-body-1-desktop);
-    --text-body-2: var(--text-body-2-desktop);
-    --text-body-3: var(--text-body-3-desktop);
-    --text-body-4: var(--text-body-4-desktop);
-    --text-body-5: var(--text-body-5-desktop);
-    --text-button-1: var(--text-button-1-desktop);
-    --text-button-2: var(--text-button-2-desktop);
-    --text-button-2--font-weight: var(--text-button-2-desktop--font-weight);
-  }
-
-  /* The content cap inside the wide inset: --container-content within --spacing-48. */
-  .content {
-    padding-inline: var(--spacing-48);
-    max-inline-size: calc(var(--container-content) + 2 * var(--spacing-48));
-  }
-
-  .value-items > li::before {
-    inline-size: var(--spacing-96);
+  /*
+   * The design reference draws no disabled state on any frame (AAP 0.2.3, 0.15.2), so the one
+   * control that cannot act is treated from tokens the manifest already declares rather than
+   * from an invented dimming value. The Taupe edge is the boundary the manifest names as
+   * identifying a control on Cream (9.40:1), and the cursor states the same thing again for a
+   * pointer that comes over it; the label ink is the component's own, the Cream plate carrying
+   * Coffee Bean at 7.25:1. The rule belongs in this layer because the rest-state plate arrives
+   * from a utility while the two properties here are set by no utility the component applies.
+   */
+  .control-inert {
+    border: var(--border-input);
+    cursor: not-allowed;
   }
 }
 
@@ -576,6 +578,48 @@
 
   .tone-inverse :focus-visible {
     outline-color: var(--color-ink-cream);
+  }
+
+  /*
+   * The design declares two artboard widths and no breakpoint, so the step from Mobile to
+   * Desktop sizes begins at the plan's own breakpoint (PA-5), taken from the one
+   * --breakpoint-wide declaration above. The tokens are re-pointed rather than the classes, so
+   * one value still has one definition and both the .type-* classes and Tailwind's text-<step>
+   * utilities change together.
+   *
+   * The block closes this layer rather than standing outside it: the .content and .value-items
+   * rules above are in this layer too, so the wide half refines the narrow half by order within
+   * one layer and a utility overrides both halves alike. Unlayered, it would have outranked
+   * every layer and changed one property at one width only.
+   */
+  @media (min-width: theme(--breakpoint-wide)) {
+    :root {
+      --text-display-2: var(--text-display-2-desktop);
+      --text-heading-1: var(--text-heading-1-desktop);
+      --text-heading-2: var(--text-heading-2-desktop);
+      --text-heading-3: var(--text-heading-3-desktop);
+      --text-heading-4: var(--text-heading-4-desktop);
+      --text-heading-5: var(--text-heading-5-desktop);
+      --text-heading-6: var(--text-heading-6-desktop);
+      --text-body-1: var(--text-body-1-desktop);
+      --text-body-2: var(--text-body-2-desktop);
+      --text-body-3: var(--text-body-3-desktop);
+      --text-body-4: var(--text-body-4-desktop);
+      --text-body-5: var(--text-body-5-desktop);
+      --text-button-1: var(--text-button-1-desktop);
+      --text-button-2: var(--text-button-2-desktop);
+      --text-button-2--font-weight: var(--text-button-2-desktop--font-weight);
+    }
+
+    /* The content cap inside the wide inset: --container-content within --spacing-48. */
+    .content {
+      padding-inline: var(--spacing-48);
+      max-inline-size: calc(var(--container-content) + 2 * var(--spacing-48));
+    }
+
+    .value-items > li::before {
+      inline-size: var(--spacing-96);
+    }
   }
 }
 

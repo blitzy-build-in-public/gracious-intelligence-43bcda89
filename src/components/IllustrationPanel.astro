@@ -1,0 +1,140 @@
+---
+/**
+ * Renders one of the nine decorative panels authored for this project (AAP 0.2.4, 0.8.1).
+ *
+ * Each panel is inlined from its own SVG source at build time rather than linked, so a panel
+ * costs the page no image request and no `data:` URI that the content security policy would
+ * refuse (AAP 0.4.5). The source is the repository's own artwork: nothing here is exported,
+ * traced or approximated from the Figma file (rule W-1), and nothing is fetched (rule B-1).
+ *
+ * The component deliberately owns no width, height, radius or colour. The same `top` panel
+ * fills page-top frames drawn at two different radii, and the same `hero` panel fills a
+ * 1440x434 band as well as a 155x91 slot, so the consumer sets the box, the radius and the
+ * ground, and the panel fills whatever box it is given (AAP 0.2.4, 0.8.1).
+ *
+ * Every panel is decorative: the wrapper and the drawing are both hidden from assistive
+ * technology and neither carries an accessible name (rule B-3).
+ */
+import type { PanelVariant } from '../content/global.ts';
+
+import boundary from '../illustrations/panels/boundary.svg?raw';
+import hero from '../illustrations/panels/hero.svg?raw';
+import mission from '../illustrations/panels/mission.svg?raw';
+import stage01 from '../illustrations/panels/stage-01.svg?raw';
+import stage02 from '../illustrations/panels/stage-02.svg?raw';
+import stage03 from '../illustrations/panels/stage-03.svg?raw';
+import stage04 from '../illustrations/panels/stage-04.svg?raw';
+import top from '../illustrations/panels/top.svg?raw';
+import vision from '../illustrations/panels/vision.svg?raw';
+
+interface Props {
+  variant: PanelVariant;
+}
+
+const { variant } = Astro.props;
+
+/**
+ * One source per panel. The record is typed by the variant union, so a panel added to
+ * `PanelVariant` without a source here fails the type check rather than rendering an empty box.
+ */
+const panels: Record<PanelVariant, string> = {
+  top,
+  hero,
+  boundary,
+  'stage-01': stage01,
+  'stage-02': stage02,
+  'stage-03': stage03,
+  'stage-04': stage04,
+  vision,
+  mission,
+};
+
+/**
+ * Makes the panel fill its box. `h-full` and `w-full` are what let each drawing's own
+ * `preserveAspectRatio="xMidYMid slice"` crop the artwork to the slot instead of scaling it to
+ * its intrinsic 2:1 and overflowing a shallow band. Utilities only: no size of the component's
+ * own, no colour, and no `style` attribute, which the hash-only policy cannot allow (AAP 0.4.5).
+ */
+const FILL = 'block h-full w-full';
+
+/**
+ * Returns the opening `<svg>` tag, or throws naming the panel when the source has none: an
+ * unreadable panel must stop the build, never render as an empty box on a published page.
+ */
+function rootTagOf(name: PanelVariant, source: string): string {
+  const root = /<svg\b[^>]*>/i.exec(source)?.[0];
+
+  if (root === undefined) {
+    throw new Error(`IllustrationPanel: ${name}.svg has no root <svg> element to inline.`);
+  }
+
+  return root;
+}
+
+/** Adds `name="value"` to an opening tag that does not already set that attribute. */
+function withAttribute(tag: string, name: string, value: string): string {
+  if (new RegExp(`\\s${name}\\s*=`).test(tag)) {
+    return tag;
+  }
+
+  return tag.replace(/\s*(\/?)>$/, ` ${name}="${value}"$1>`);
+}
+
+/** Merges the fill utilities into the tag's class attribute, adding one when it has none. */
+function withFill(tag: string): string {
+  const existing = /\sclass="([^"]*)"/.exec(tag);
+
+  if (existing === null) {
+    return withAttribute(tag, 'class', FILL);
+  }
+
+  const merged = `${existing[1]} ${FILL}`.trim().replace(/\s+/g, ' ');
+
+  return tag.replace(existing[0], ` class="${merged}"`);
+}
+
+/**
+ * Prepares a panel for inline use. The nine sources are authored to this contract already; the
+ * steps below keep the component's guarantees true if one drifts, and each failure names the
+ * panel so the illustrations owner can act on it.
+ */
+function decorativeMarkup(name: PanelVariant, source: string): string {
+  if (/\sstyle\s*=|\son[a-z]+\s*=|<style\b|<script\b/i.test(source)) {
+    throw new Error(
+      `IllustrationPanel: ${name}.svg carries inline style or script, which the content security policy refuses (AAP 0.4.5).`,
+    );
+  }
+
+  const root = rootTagOf(name, source);
+
+  if (!/\sviewBox\s*=/.test(root)) {
+    throw new Error(
+      `IllustrationPanel: ${name}.svg has no viewBox, so it cannot scale to its slot.`,
+    );
+  }
+
+  // A fixed width or height would fight the consumer's box, so the tag keeps neither, and the
+  // drawing is then told to take whatever box it is given. These two are presentation
+  // attributes, not CSS declarations, so the hash-only policy allows them (AAP 0.4.5), and they
+  // hold the panel at the slot's size even if the fill utilities below are not applied.
+  let tag = root.replace(/\s(?:width|height)\s*=\s*"[^"]*"/gi, '');
+
+  tag = withAttribute(tag, 'aria-hidden', 'true');
+  tag = withAttribute(tag, 'focusable', 'false');
+  tag = withAttribute(tag, 'width', '100%');
+  tag = withAttribute(tag, 'height', '100%');
+  tag = withFill(tag);
+
+  return source.replace(root, tag);
+}
+
+const source: string | undefined = panels[variant];
+
+if (typeof source !== 'string') {
+  throw new Error(`IllustrationPanel: unknown panel variant "${String(variant)}".`);
+}
+
+const markup = decorativeMarkup(variant, source);
+---
+
+<span aria-hidden="true" class={FILL}><Fragment set:html={markup} /></span>

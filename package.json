@@ -1,0 +1,40 @@
+{
+  "name": "gracious-intelligence-website",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Static marketing website for Gracious Intelligence presenting its proposed product, Site Intelligence.",
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/launch-check.ts --when-live && astro build",
+    "prebuild": "npm run assets",
+    "preview": "astro preview",
+    "check": "astro check",
+    "assets": "node scripts/gen-assets.ts",
+    "launch-check": "node scripts/launch-check.ts",
+    "screenshots": "node scripts/screenshots.ts",
+    "test": "npm run assets && npm run test:static && npm run test:copy && npm run test:content && npm run test:e2e && npm run test:lighthouse",
+    "test:static": "node --test tests/static/builds.test.ts tests/static/output.test.ts tests/static/residue.test.ts tests/static/source.test.ts",
+    "test:copy": "node --test tests/static/copy.test.ts",
+    "test:content": "node --test tests/static/content.test.ts",
+    "test:e2e": "E2E_CONFIG=default playwright test && E2E_CONFIG=live playwright test && E2E_CONFIG=mailto playwright test && E2E_CONFIG=screens playwright test",
+    "test:lighthouse": "node tests/lighthouse/run.ts"
+  },
+  "dependencies": {
+    "@phosphor-icons/core": "2.1.1",
+    "astro": "7.4.13",
+    "tailwindcss": "4.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1",
+    "@tailwindcss/vite": "4.3.5",
+    "lighthouse": "13.6.0",
+    "sharp": "0.35.5",
+    "typescript": "6.0.3"
+  }
+}
